@@ -1,0 +1,5 @@
+#include "../Build.xcconfig"
+
+// Since AltStoreCore is unsigned or the team is not configured, we re-define the bundle ID here to not have extra '.'
+// This bundle ID doesn't need to change since altStoreCore framework lives inside SideStore main app's address space and won't have conflicts with other instances
+PRODUCT_BUNDLE_IDENTIFIER = com.flux.fluxstore.AltStoreCore

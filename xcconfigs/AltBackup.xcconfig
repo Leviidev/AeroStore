@@ -1,0 +1,4 @@
+#include "../Build.xcconfig"
+
+PRODUCT_BUNDLE_IDENTIFIER[config=Debug] = com.flux.fluxstore.$(DEVELOPMENT_TEAM).AltBackup
+PRODUCT_BUNDLE_IDENTIFIER[config=Release] = com.flux.fluxstore.AltBackup
