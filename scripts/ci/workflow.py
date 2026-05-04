@@ -77,6 +77,7 @@ def count_new_commits(last_commit):
 # PROJECT INFO
 # ----------------------------------------------------------
 def dump_project_settings(outdir=None):
+    ensure_fluxstore_dependencies()
     patch_altsign_spm_manifest()
     fetch_em_proxy_prebuilt()
     outfile = Path(outdir).resolve() / BUILD_SETTINGS_OUTFILE if outdir else BUILD_SETTINGS_OUTFILE
@@ -146,12 +147,18 @@ def patch_altsign_spm_manifest():
     run(f"python3 '{script}'")
 
 
+def ensure_fluxstore_dependencies():
+    sh = SCRIPTS / "ensure_fluxstore_dependencies.sh"
+    run(f"bash '{sh}'")
+
+
 def fetch_em_proxy_prebuilt():
     sh = SCRIPTS / "fetch_em_proxy_prebuilt.sh"
     run(f"bash '{sh}'")
 
 
 def build():
+    ensure_fluxstore_dependencies()
     patch_altsign_spm_manifest()
     fetch_em_proxy_prebuilt()
     run("mkdir -p build/logs")
@@ -169,6 +176,7 @@ def build():
 # ----------------------------------------------------------
 
 def tests_build():
+    ensure_fluxstore_dependencies()
     patch_altsign_spm_manifest()
     fetch_em_proxy_prebuilt()
     run("mkdir -p build/logs")

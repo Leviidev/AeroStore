@@ -19,11 +19,8 @@ jobs:
           # Shallow default clones can leave submodule checkouts empty; full history is safest for gitlinks.
           fetch-depth: 0
 
-      - name: Sync git submodules
-        run: |
-          set -euo pipefail
-          git submodule sync --recursive
-          git submodule update --init --recursive
+      - name: Sync submodules and ensure native Dependencies checkouts
+        run: bash scripts/ci/ensure_fluxstore_dependencies.sh
 
       - name: SwiftPM — GitHub token (fewer clone/rate-limit issues)
         run: git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
