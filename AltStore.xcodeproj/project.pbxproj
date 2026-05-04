@@ -230,6 +230,20 @@
 			remoteGlobalIDString = CA60C44C93D7916DE57E6EBD;
 			remoteInfo = "em_proxy-staticlib";
 		};
+		B8EB8CC02F5453CE0094BC01 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A8BD32D02F5440300045335F /* Roxas.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BFADAFF819AE7BB70050CF31;
+			remoteInfo = Roxas;
+		};
+		B8EB8CC22F5453CE0094BC01 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A8BD32D02F5440300045335F /* Roxas.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BFADAFF819AE7BB70050CF31;
+			remoteInfo = Roxas;
+		};
 		BF66EE832501AE50007EE018 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BFD247622284B9A500981D42 /* Project object */;
@@ -1388,6 +1402,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				B8EB8CC32F5453CE0094BC01 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				A8EEC0502F4AF7FB00F2436D /* AltStoreCore */,
@@ -1439,6 +1454,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				B8EB8CC12F5453CE0094BC01 /* PBXTargetDependency */,
 				A85A51FA2F4B4E3E002E2E11 /* PBXTargetDependency */,
 				0ED4AEC92E6DDB2A0039E2C0 /* PBXTargetDependency */,
 				BF66EE842501AE50007EE018 /* PBXTargetDependency */,
@@ -1764,6 +1780,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		B8EB8CC12F5453CE0094BC01 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Roxas;
+			targetProxy = B8EB8CC02F5453CE0094BC01 /* PBXContainerItemProxy */;
+		};
+		B8EB8CC32F5453CE0094BC01 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Roxas;
+			targetProxy = B8EB8CC22F5453CE0094BC01 /* PBXContainerItemProxy */;
+		};
 		0ED4AEC92E6DDB2A0039E2C0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = BF58047A246A28F7008AE704 /* AltBackup */;

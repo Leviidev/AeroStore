@@ -12,6 +12,9 @@ cd "${ROOT}"
 : "${FLUXSTORE_LIBIMOBILEDEVICE_GLUE_REV:=214bafdde6a1434ead87357afe6cb41b32318495}"
 : "${FLUXSTORE_MARKDOWN_ATTRIBUTED_STRING_REV:=750e8d5cb455dcc592a9b6d1cacaa19837e7abff}"
 : "${FLUXSTORE_ROXAS_REV:=0784711ed9a3a0bdb5cc57bde35d2c621691cf74}"
+# SideStore submodule pins (SideStore/SideStore develop); needed for archive + Minimuxer script + synced apps catalog.
+: "${FLUXSTORE_MINIMUXER_REV:=e3614068c77fb09945eff363fbc3f9e8abf4c834}"
+: "${FLUXSTORE_APPS_V2_JSON_REV:=9724b1c56d9c339ceefe2197abfbc026cd4cc1ff}"
 
 git submodule sync --recursive 2>/dev/null || true
 git submodule update --init --recursive 2>/dev/null || true
@@ -62,4 +65,10 @@ clone_at_rev() {
 [[ -d "${ROOT}/Dependencies/Roxas/Roxas.xcodeproj" ]] \
   || clone_at_rev "Dependencies/Roxas" "https://github.com/rileytestut/Roxas.git" "${FLUXSTORE_ROXAS_REV}" "Roxas.xcodeproj"
 
-echo "FluxStore dependency trees OK (libplist, libusbmuxd, libimobiledevice, glue, MarkdownAttributedString, Roxas)."
+[[ -f "${ROOT}/Dependencies/minimuxer/Package.swift" ]] \
+  || clone_at_rev "Dependencies/minimuxer" "https://github.com/SideStore/minimuxer.git" "${FLUXSTORE_MINIMUXER_REV}" "Package.swift"
+
+[[ -f "${ROOT}/Dependencies/apps-v2.json/README.md" ]] \
+  || clone_at_rev "Dependencies/apps-v2.json" "https://github.com/SideStore/apps-v2.json.git" "${FLUXSTORE_APPS_V2_JSON_REV}" "README.md"
+
+echo "FluxStore dependency trees OK (libplist, libusbmuxd, libimobiledevice, glue, MarkdownAttributedString, Roxas, minimuxer, apps-v2.json)."
