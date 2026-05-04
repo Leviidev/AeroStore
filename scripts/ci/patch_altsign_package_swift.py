@@ -4,22 +4,69 @@ SwiftPM on Xcode 26 can fail resolving SideStore/AltSign with:
   the package manifest at '/Package.swift' cannot be accessed
 
 The CAltSign target uses `path: ""` for the package root; use `path: "."` instead.
-Run after `git submodule update --init` so Dependencies/AltSign/Package.swift exists.
+
+Expects `Dependencies/AltSign` from git submodules. If that tree is missing (e.g. CI
+checkout without submodules), clones SideStore/AltSign from GitHub once.
 """
 from __future__ import annotations
 
+import os
 import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PKG = ROOT / "Dependencies" / "AltSign" / "Package.swift"
+ALT_DIR = ROOT / "Dependencies" / "AltSign"
+PKG = ALT_DIR / "Package.swift"
+
+ALT_SIGN_URL = os.environ.get(
+    "FLUXSTORE_ALTSIGN_CLONE_URL",
+    "https://github.com/SideStore/AltSign.git",
+)
+ALT_SIGN_BRANCH = os.environ.get("FLUXSTORE_ALTSIGN_BRANCH", "master")
+
+
+def _ensure_altsign_tree() -> None:
+    if PKG.is_file():
+        return
+    print(
+        f"Missing {PKG}; cloning {ALT_SIGN_URL} (branch {ALT_SIGN_BRANCH})…",
+        file=sys.stderr,
+    )
+    ALT_DIR.parent.mkdir(parents=True, exist_ok=True)
+    if ALT_DIR.exists():
+        shutil.rmtree(ALT_DIR)
+    subprocess.run(
+        [
+            "git",
+            "clone",
+            "--depth",
+            "1",
+            "--branch",
+            ALT_SIGN_BRANCH,
+            ALT_SIGN_URL,
+            str(ALT_DIR),
+        ],
+        check=True,
+    )
+    if not PKG.is_file():
+        raise RuntimeError(f"clone finished but {PKG} is still missing")
 
 
 def main() -> int:
-    if not PKG.is_file():
-        print(f"error: missing {PKG} (init submodules?)", file=sys.stderr)
+    try:
+        _ensure_altsign_tree()
+    except (OSError, subprocess.CalledProcessError, RuntimeError) as exc:
+        print(f"error: could not obtain AltSign under Dependencies/AltSign: {exc}", file=sys.stderr)
+        print(
+            "hint: run `git submodule sync --recursive` and "
+            "`git submodule update --init --recursive` from the repo root.",
+            file=sys.stderr,
+        )
         return 1
+
     text = PKG.read_text(encoding="utf-8")
     # AltSign indents with a leading space before `.target(` — match that too.
     pattern = r'(\s*\.target\(\s*\n\s*name:\s*"CAltSign",[\s\S]*?)path:\s*""\s*,'

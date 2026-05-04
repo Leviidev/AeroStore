@@ -16,6 +16,14 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          # Shallow default clones can leave submodule checkouts empty; full history is safest for gitlinks.
+          fetch-depth: 0
+
+      - name: Sync git submodules
+        run: |
+          set -euo pipefail
+          git submodule sync --recursive
+          git submodule update --init --recursive
 
       - name: SwiftPM — GitHub token (fewer clone/rate-limit issues)
         run: git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
