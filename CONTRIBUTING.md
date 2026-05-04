@@ -37,8 +37,7 @@ Next, make and test your changes. Then, commit and push your changes using git a
 
 ## Prebuilt binary information
 
-minimuxer and em_proxy use prebuilt static library binaries built by GitHub Actions to speed up builds and remove the need for Rust to be installed for routine FluxStore work.
-[`SideStore/fetch-prebuilt.sh`](./SideStore/fetch-prebuilt.sh) runs before each Xcode build and refreshes downloads about every six hours. To force a refresh: `bash ./SideStore/fetch-prebuilt.sh force`.
+minimuxer and em_proxy use prebuilt static library binaries built by GitHub Actions to speed up builds and remove the need for Rust to be installed for routine FluxStore work. The em_proxy Xcode target runs `Dependencies/em_proxy/fetch-prebuilt.sh em_proxy` (needs **wget**); CI and `scripts/ci/workflow.py` also run **`scripts/ci/fetch_em_proxy_prebuilt.sh`** before `xcodebuild` so device libraries exist before `em_proxy-swift` compiles.
 
 **AltSign submodule + SwiftPM:** FluxStore links AltSign as a **local Swift package** at `Dependencies/AltSign` (git submodule). Before resolving packages, `make` and CI run `python3 scripts/ci/patch_altsign_package_swift.py`, which adjusts AltSign’s `Package.swift` so Xcode 26 does not hit the bogus `/Package.swift` SwiftPM error. If you open the project without running `make`, run that command once after `git submodule update --init --recursive`. The same script **clones `SideStore/AltSign` into `Dependencies/AltSign`** if the submodule directory is still missing (for example a shallow CI clone without gitlinks), with **`git submodule update --init --recursive` inside that repo** so nested checkouts (`Dependencies/ldid`, `Dependencies/OpenSSL`, etc.) exist—otherwise SwiftPM reports `ldid-core` as empty. Override clone URL/branch with `FLUXSTORE_ALTSIGN_CLONE_URL` / `FLUXSTORE_ALTSIGN_BRANCH` if you fork AltSign.
 

@@ -64,6 +64,9 @@ jobs:
             -derivedDataPath "$DD" \
             -clonedSourcePackagesDirPath "$SP"
 
+      - name: Fetch em_proxy prebuilt binaries
+        run: bash scripts/ci/fetch_em_proxy_prebuilt.sh
+
       - name: Archive (unsigned)
         run: |
           set -euo pipefail
@@ -73,7 +76,7 @@ jobs:
           DD="${ROOT}/build/ci-DerivedData"
           SP="${ROOT}/build/ci-SourcePackages"
           mkdir -p "${ROOT}/build"
-          xcodebuild clean archive \
+          xcodebuild archive \
             -project "$PROJ" \
             -scheme SideStore \
             -configuration Debug \

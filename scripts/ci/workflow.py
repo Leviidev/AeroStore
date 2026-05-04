@@ -78,6 +78,7 @@ def count_new_commits(last_commit):
 # ----------------------------------------------------------
 def dump_project_settings(outdir=None):
     patch_altsign_spm_manifest()
+    fetch_em_proxy_prebuilt()
     outfile = Path(outdir).resolve() / BUILD_SETTINGS_OUTFILE if outdir else BUILD_SETTINGS_OUTFILE
     run(f"xcodebuild -showBuildSettings 2>&1 > '{outfile}'")
 
@@ -145,8 +146,14 @@ def patch_altsign_spm_manifest():
     run(f"python3 '{script}'")
 
 
+def fetch_em_proxy_prebuilt():
+    sh = SCRIPTS / "fetch_em_proxy_prebuilt.sh"
+    run(f"bash '{sh}'")
+
+
 def build():
     patch_altsign_spm_manifest()
+    fetch_em_proxy_prebuilt()
     run("mkdir -p build/logs")
     run(
         "set -o pipefail && "
@@ -163,6 +170,7 @@ def build():
 
 def tests_build():
     patch_altsign_spm_manifest()
+    fetch_em_proxy_prebuilt()
     run("mkdir -p build/logs")
     run(
         "NSUnbufferedIO=YES make -B build-tests "
