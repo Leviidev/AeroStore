@@ -1368,6 +1368,9 @@
 				A8EEC3D92F4B0FC800F2436D /* AltBackup */,
 			);
 			name = AltBackup;
+			packageProductDependencies = (
+				A803924F2F55300300097AF1 /* AltSign-Static */,
+			);
 			productName = AltBackup;
 			productReference = BF58047B246A28F7008AE704 /* AltBackup.app */;
 			productType = "com.apple.product-type.application";
@@ -1451,6 +1454,12 @@
 			packageProductDependencies = (
 				68D569BD2E1B415700A5BA36 /* CodeEditorView */,
 				68D569BF2E1B415700A5BA36 /* LanguageSupport */,
+				A803924A2F552F4C00097AF1 /* Minimuxer */,
+				A8B646002D70C23E00125819 /* MarkdownKit */,
+				A83FE3662EC90482005ACE9A /* Starscream */,
+				A8C2260D2EC9039A00047C0D /* Nuke */,
+				A8EB89CD2F5451B50094BC01 /* SemanticVersion */,
+				A8EB89CF2F5451C20094BC01 /* KeychainAccess */,
 			);
 			productName = AltStore;
 			productReference = BFD2476A2284B9A500981D42 /* FluxStore.app */;
