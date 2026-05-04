@@ -10,7 +10,8 @@ concurrency:
 
 jobs:
   ipa:
-    runs-on: macos-latest
+    # Match nightly/pr workflows: Xcode 26 + consistent SwiftPM layout (avoids bogus `/Package.swift` resolution on some runners).
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,9 +20,9 @@ jobs:
       - name: SwiftPM — GitHub token (fewer clone/rate-limit issues)
         run: git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
-      - uses: maxim-lobanov/setup-xcode@v1
+      - uses: maxim-lobanov/setup-xcode@v1.6.0
         with:
-          xcode-version: latest-stable
+          xcode-version: "26.4"
 
       - name: Find Xcode project
         id: proj
@@ -38,20 +39,38 @@ jobs:
 
       - name: Resolve packages
         run: |
+          set -euo pipefail
           P="${{ steps.proj.outputs.dir }}"
-          xcodebuild -resolvePackageDependencies -project "$P/AltStore.xcodeproj" -scheme SideStore
+          ROOT="${GITHUB_WORKSPACE:?}"
+          PROJ="${ROOT%/}/${P#./}/AltStore.xcodeproj"
+          DD="${ROOT}/build/ci-DerivedData"
+          SP="${ROOT}/build/ci-SourcePackages"
+          rm -rf "$DD" "$SP"
+          mkdir -p "$DD" "$SP" "${ROOT}/build"
+          xcodebuild -resolvePackageDependencies \
+            -project "$PROJ" \
+            -scheme SideStore \
+            -derivedDataPath "$DD" \
+            -clonedSourcePackagesDirPath "$SP"
 
       - name: Archive (unsigned)
         run: |
+          set -euo pipefail
           P="${{ steps.proj.outputs.dir }}"
-          mkdir -p build
+          ROOT="${GITHUB_WORKSPACE:?}"
+          PROJ="${ROOT%/}/${P#./}/AltStore.xcodeproj"
+          DD="${ROOT}/build/ci-DerivedData"
+          SP="${ROOT}/build/ci-SourcePackages"
+          mkdir -p "${ROOT}/build"
           xcodebuild clean archive \
-            -project "$P/AltStore.xcodeproj" \
+            -project "$PROJ" \
             -scheme SideStore \
             -configuration Debug \
-            -archivePath "build/App.xcarchive" \
+            -archivePath "${ROOT}/build/App.xcarchive" \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
+            -derivedDataPath "$DD" \
+            -clonedSourcePackagesDirPath "$SP" \
             ONLY_ACTIVE_ARCH=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -60,14 +79,16 @@ jobs:
 
       - name: Make IPA zip
         run: |
-          APP="$(find build/App.xcarchive/Products/Applications -maxdepth 1 -name "*.app" -print -quit)"
+          set -euo pipefail
+          ROOT="${GITHUB_WORKSPACE:?}"
+          APP="$(find "${ROOT}/build/App.xcarchive/Products/Applications" -maxdepth 1 -name "*.app" -print -quit)"
           test -n "$APP" && test -d "$APP"
-          rm -rf build/Payload build/App.ipa
-          mkdir -p build/Payload
-          cp -R "$APP" build/Payload/
-          (cd build && zip -qr App.ipa Payload)
-          rm -rf build/Payload
-          ls -lh build/App.ipa
+          rm -rf "${ROOT}/build/Payload" "${ROOT}/build/App.ipa"
+          mkdir -p "${ROOT}/build/Payload"
+          cp -R "$APP" "${ROOT}/build/Payload/"
+          (cd "${ROOT}/build" && zip -qr App.ipa Payload)
+          rm -rf "${ROOT}/build/Payload"
+          ls -lh "${ROOT}/build/App.ipa"
 
       - uses: actions/upload-artifact@v4
         with:

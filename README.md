@@ -1,47 +1,67 @@
-# SideStore
+# FluxStore
 
-> SideStore is an *untethered, community driven* alternative app store for non-jailbroken iOS devices 
+> FluxStore is a **fork of [SideStore](https://github.com/SideStore/SideStore)**—an *untethered, community-driven* alternative app store for non-jailbroken iOS devices—with Flux branding and a different on-device JIT story (see below).
+
+**Repository:** [github.com/FluxStore-App/FluxStore](https://github.com/FluxStore-App/FluxStore)
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://makeapullrequest.com)
-[![Nightly SideStore build](https://github.com/SideStore/SideStore/actions/workflows/nightly.yml/badge.svg)](https://github.com/SideStore/SideStore/actions/workflows/nightly.yml)
-[![.github/workflows/beta.yml](https://github.com/SideStore/SideStore/actions/workflows/beta.yml/badge.svg)](https://github.com/SideStore/SideStore/actions/workflows/beta.yml)
-[![Discord](https://img.shields.io/discord/949183273383395328?label=Discord)](https://dis.sidestore.io)
+[![GitHub Actions](https://img.shields.io/github/actions/workflow/status/FluxStore-App/FluxStore/get-ipa.yml?branch=main&label=Get%20IPA&logo=github)](https://github.com/FluxStore-App/FluxStore/actions/workflows/get-ipa.yml)
+[![Nightly build](https://img.shields.io/github/actions/workflow/status/FluxStore-App/FluxStore/nightly.yml?branch=main&label=Nightly&logo=github)](https://github.com/FluxStore-App/FluxStore/actions/workflows/nightly.yml)
+[![PR build](https://img.shields.io/github/actions/workflow/status/FluxStore-App/FluxStore/pr.yml?label=PR%20build&logo=github)](https://github.com/FluxStore-App/FluxStore/actions/workflows/pr.yml)
 
-![Alt](https://repobeats.axiom.co/api/embed/3a329ce95955690b9a9366f8d5598626a847d96c.svg "Repobeats analytics image")
+Clone this repo (including submodules):
 
-SideStore is an iOS application that allows you to sideload apps onto your iOS device with just your Apple ID. SideStore resigns apps with your personal development certificate, and then uses a [specially designed VPN](https://github.com/jkcoxson/em_proxy) in order to trick iOS into installing them. SideStore will periodically "refresh" your apps in the background, to keep their normal 7-day development period from expiring.
+```bash
+git clone --recurse-submodules https://github.com/FluxStore-App/FluxStore.git
+```
 
-SideStore's goal is to provide an untethered sideloading experience. It's a community driven fork of [AltStore](https://github.com/rileytestut/AltStore), and has already implemented some of the community's most-requested features.
+Manual unsigned IPA builds: open [Actions → Get IPA (unsigned)](https://github.com/FluxStore-App/FluxStore/actions/workflows/get-ipa.yml) and run **Run workflow**.
 
-(Contributions are welcome! 🙂)
+Like SideStore, FluxStore is an iOS application that lets you sideload apps using your Apple ID. It resigns apps with your personal development certificate and uses a [specially designed VPN](https://github.com/jkcoxson/em_proxy) so iOS can install them. Background refresh helps keep the usual 7-day development provisioning window from expiring unexpectedly.
+
+## How FluxStore differs from SideStore
+
+| Area | SideStore (upstream) | FluxStore (this fork) |
+|------|----------------------|------------------------|
+| **Identity** | SideStore product name and assets | **FluxStore** product name and `com.flux`–style bundle identifiers (see `Build.xcconfig`) |
+| **JIT / debugging** | Often discussed alongside **SideJITStreamer**-style enablers | Uses the **StikDebug “StikJIT”** component bundled in-repo (`StikJIT/`) to enable JIT **locally on the device** instead of relying on SideJITStreamer |
+| **Codebase** | SideStore frontend + backend patterns | Same SideStore-derived app structure; StikJIT replaces the upstream JIT enabler integration for local JIT |
+
+Upstream SideStore remains a community fork of [AltStore](https://github.com/rileytestut/AltStore). FluxStore tracks that lineage and inherits the same AGPLv3 license.
 
 ## Requirements
-- Xcode 15
-- iOS 14+
-- Rustup (`brew install rustup`)
 
-Why iOS 14? Targeting such a recent version of iOS allows us to accelerate development, especially since not many developers have older devices to test on. This is corrobated by the fact that SwiftUI support is much better, allowing us to transistion to a more modern UI codebase.
-## Project Overview
+- **Xcode** 26.x (CI and simulator targets in this repo assume current Apple toolchains; use the latest Xcode you can install for your OS.)
+- **iOS** 14+ (project constraints may be higher for some SwiftUI or dependency features—check Xcode for the active deployment target.)
+- **Rustup** if you build components that compile Rust locally (`brew install rustup`). Prebuilt binaries are used in many flows; see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-### SideStore
-SideStore is a just regular, sandboxed iOS application. The AltStore app target contains the vast majority of SideStore's functionality, including all the logic for downloading and updating apps through SideStore. SideStore makes heavy use of standard iOS frameworks and technologies most iOS developers are familiar with.
+## Project overview
+
+### FluxStore app
+
+The main iOS target (scheme **SideStore** in Xcode, product **FluxStore**) contains most sideloading, download, and update logic, following the SideStore/AltStore architecture.
 
 ### EM Proxy
-[EM Proxy](https://github.com/jkcoxson/em_proxy) powers the defining feature of SideStore: untethered app installation. By leveraging a custom-built App Store app with additional entitlements ([LocalDevVPN](https://github.com/jkcoxson/LocalDevVPN)) to create the VPN tunnel for us, it allows SideStore to take advantage of [Jitterbug](https://github.com/osy/Jitterbug)'s loopback method without requiring a paid developer account.
+
+[EM Proxy](https://github.com/jkcoxson/em_proxy) provides untethered installation by combining a privileged VPN helper ([LocalDevVPN](https://github.com/jkcoxson/LocalDevVPN)) with a loopback approach similar in spirit to [Jitterbug](https://github.com/osy/Jitterbug), without requiring a paid Apple developer program tier for basic sideloading workflows.
 
 ### Minimuxer
-[Minimuxer](https://github.com/jkcoxson/minimuxer) is a lockdown muxer that can run inside iOS’s sandbox. It replicates Apple’s usbmuxd protocol on macOS to “discover” devices to interface with LocalDevVPN on-device.
+
+[Minimuxer](https://github.com/SideStore/minimuxer) is a lockdown muxer that can run inside iOS’s sandbox and speaks the usbmuxd-style protocol expected by LocalDevVPN on device.
+
+### StikJIT (local JIT)
+
+This fork wires in **StikJIT** (from the StikDebug ecosystem) so JIT-capable workflows can be driven **on the device** rather than through SideJITStreamer. Implementation lives under `StikJIT/` and is linked from the main app target.
 
 ### Roxas
-[Roxas](https://github.com/rileytestut/roxas) is Riley Testut's internal framework from AltStore used across many of their iOS projects, developed to simplify a variety of common tasks used in iOS development.
 
-We're hoping to eventually eliminate our dependency on it, as it increases the amount of unnecessary Objective-C in the project.
+[Roxas](https://github.com/rileytestut/roxas) is Riley Testut’s shared framework from AltStore. FluxStore still depends on it where upstream does; reducing that dependency is a longer-term upstream goal.
 
-## Contributing/Compilation Instructions
+## Contributing / build instructions
 
-Please see [CONTRIBUTING.md](./CONTRIBUTING.md)
+See [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## Licensing
 
-This project is licensed under the **AGPLv3 license**.
+This project is licensed under the **AGPLv3** license.

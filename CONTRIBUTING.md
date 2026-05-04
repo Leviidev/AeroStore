@@ -1,19 +1,15 @@
-# Contributing to SideStore
+# Contributing to FluxStore
 
-Thank you for your interest in contributing to SideStore! SideStore is a community driven project, and it's made possible by people like you.
+Thank you for your interest in contributing to **FluxStore**. FluxStore is a **fork of [SideStore](https://github.com/SideStore/SideStore)** (itself a community-driven fork of [AltStore](https://github.com/rileytestut/AltStore)). It keeps the same general sideloading architecture—SideStore-style frontend and backend patterns—but ships as **FluxStore** (see `Build.xcconfig` for product name and bundle IDs) and uses the **StikDebug “StikJIT”** integration under `StikJIT/` for **on-device JIT**, instead of the SideJITStreamer-style enabler used upstream.
 
-By contributing to this Project (SideStore), you agree to the Developer's Certificate of Origin found in [CERTIFICATE-OF-ORIGIN.md](CERTIFICATE-OF-ORIGIN.md). Any contributions to this project after the addition of the Developer's Certificate of Origin are subject to its policy.
+By contributing to this project, you agree to the Developer's Certificate of Origin in [CERTIFICATE-OF-ORIGIN.md](CERTIFICATE-OF-ORIGIN.md). Any contributions after that file was added are subject to its policy.
 
-There are many ways to contribute to SideStore, so if you aren't a developer, there are still many other ways you can help out:
+Ways to help (including non-code):
 
--   [Writing documentation](https://github.com/SideStore/SideStore-Docs)
--   [Submitting detailed bug reports and suggesting new features](https://github.com/SideStore/SideStore/issues/new/choose)
--   Helping out with support
-    -   [Discord](https://discord.gg/sidestore-949183273383395328)
-    -   [GitHub Discussions](https://github.com/SideStore/SideStore/discussions)
+-   Upstream [SideStore documentation](https://github.com/SideStore/SideStore-Docs) and issue templates often still apply conceptually; report FluxStore-specific bugs and features on [**Issues**](https://github.com/FluxStore-App/FluxStore/issues).
+-   SideStore community support channels remain useful for shared behavior: [Discord](https://discord.gg/sidestore-949183273383395328), [GitHub Discussions](https://github.com/SideStore/SideStore/discussions).
 
-However, this guide will focus on the development side of things. For now, we will only have setup information here, but you can [join our Discord](https://discord.gg/RgpFBX3Q3k) if you need help
-after setup.
+This guide focuses on developer setup. If you are stuck after following it, use whichever support channel your maintainers prefer (some teams still use [this Discord invite](https://discord.gg/RgpFBX3Q3k) for dev chat).
 
 ## Requirements
 
@@ -27,42 +23,38 @@ This guide assumes you:
 
 ## Setup
 
-1. Fork the SideStore repo on GitHub.
-2. Clone the fork: `git clone https://github.com/<your github username>/SideStore.git --recurse-submodules`
+1. Fork [**FluxStore-App/FluxStore**](https://github.com/FluxStore-App/FluxStore) on GitHub if you need your own remote; otherwise clone the canonical repo below.
+2. Clone with submodules: `git clone --recurse-submodules https://github.com/FluxStore-App/FluxStore.git`
 
     If you are using GitHub Desktop, refer to
     [this guide](https://docs.github.com/en/desktop/contributing-and-collaborating-using-github-desktop/adding-and-cloning-repositories/cloning-and-forking-repositories-from-github-desktop).
 
 3. Copy `CodeSigning.xcconfig.sample` to `CodeSigning.xcconfig` and fill in the values.
-4. **(Development only)** Change the value for `ALTDeviceID` in the Info.plist to your device's UDID. Normally, SideServer embeds the device's UDID in SideStore's Info.plist during installation. When
-   running through Xcode you'll need to set the value yourself or else SideStore won't resign (or even install) apps for the proper device. You can achieve this by changing a few things to be able to
-   build and use SideStore.
-5. Finally, open `AltStore.xcodeproj` in Xcode.
+4. **(Development only)** Set `ALTDeviceID` in the app `Info.plist` to your device UDID. Normally the companion server embeds the UDID at install time; in Xcode you must set it yourself or FluxStore may not resign or install for the correct device.
+5. Open `AltStore.xcodeproj` in Xcode. The main app scheme is still named **SideStore** for historical reasons; the built product name is **FluxStore**.
 
 Next, make and test your changes. Then, commit and push your changes using git and make a pull request.
 
 ## Prebuilt binary information
 
-minimuxer and em_proxy use prebuilt static library binaries built by GitHub Actions to speed up builds and remove the need for Rust to be installed when working on SideStore.
-[`SideStore/fetch-prebuilt.sh`](./SideStore/fetch-prebuilt.sh) will be run before each build by Xcode, and it will check if the downloaded binaries are up-to-date once every 6 hours. If you want
-to force it to check for new binaries, run `bash ./SideStore/fetch-prebuilt.sh force`.
+minimuxer and em_proxy use prebuilt static library binaries built by GitHub Actions to speed up builds and remove the need for Rust to be installed for routine FluxStore work.
+[`SideStore/fetch-prebuilt.sh`](./SideStore/fetch-prebuilt.sh) runs before each Xcode build and refreshes downloads about every six hours. To force a refresh: `bash ./SideStore/fetch-prebuilt.sh force`.
 
 ## Building with Xcode
 
 Install cocoapods if required using: `brew install cocoapods`  
-Now using commandline on the repository workspace root, perform Pod-Install using: `pod install` command to install the cocoapod dependencies.  
-After this you can do regular builds within Xcode.
+If your branch still uses CocoaPods, from the repository root run `pod install`, then build in Xcode. (Many SideStore-derived trees no longer require Pods for the main app; if `Podfile` is absent, skip this.)
 
 ## Building an IPA for distribution
 
-Install cocoapods if required using: `brew install cocoapods`  
-Now using commandline on the repository workspace root, perform Pod-Install using: `pod install` command to install the cocoapod dependencies.  
+If a `Podfile` is present: `brew install cocoapods` and `pod install` from the repo root.
 
-You can then use the Makefile command: `make build fakesign ipa` in the root directory.  
-By default the config for build is: `Release`  
-For debug builds: `export BUILD_CONFIG=Debug;make build fakesign ipa` in the root directory.  
-For alpha/beta builds: `export IS_ALPHA=1;` or `export IS_BETA=1;` before invoking the build command.  
-This will create SideStore.ipa.
+You can then use: `make build fakesign ipa` from the repository root.  
+Default configuration is **Release**.  
+Debug: `export BUILD_CONFIG=Debug; make build fakesign ipa`  
+Alpha/beta: set `export IS_ALPHA=1` or `export IS_BETA=1` before `make`.
+
+The Makefile still names some paths `SideStore.xcarchive` / `SideStore.ipa` for historical compatibility with upstream scripts; Xcode itself builds **FluxStore.app** as the main product. For a self-contained unsigned IPA in CI, use the **Get IPA** GitHub Actions workflow (`.github/workflows/get-ipa.yml`).
 
 ```sh
 Examples: 
@@ -87,25 +79,26 @@ Examples:
     # stable debug build
     export BUILD_CONFIG=Debug;make build fakesign ipa
 ```
-By default sidestore will build for its default bundleIdentifier `com.SideStore.SideStore` but if you need to set a custom bundleID for commandline builds, once can do so by exporting `BUNDLE_ID_SUFFIX` env var  
+FluxStore’s default bundle identifiers are defined in `Build.xcconfig` (under the `com.flux` prefix). For command-line builds you can still export `BUNDLE_ID_SUFFIX` when using the Makefile-driven flow:  
 ```sh
     # stable release build
     export BUNDLE_ID_SUFFIX=XYZ0123456;make build fakesign ipa
     # stable debug build
     export BUNDLE_ID_SUFFIX=XYZ0123456;export BUILD_CONFIG=Debug;make build fakesign ipa
 ```
-NOTE: When building from XCode, the `BUNDLE_ID_SUFFIX` is set by default with the value of `DEVELOPMENT_TEAM`  
-  
-This can be customized by setting/removing the BUNDLE_ID_SUFFIX in overriding CodeSigning.xcconfig created from CodeSigning.xcconfig.sample  
+When building from Xcode, `BUNDLE_ID_SUFFIX` may follow `DEVELOPMENT_TEAM` depending on your `CodeSigning.xcconfig` overrides (see `CodeSigning.xcconfig.sample`).
   
     
 
 > **Warning**
 >
-> The binary created will contain paths to Xcode's DerivedData, and if you built minimuxer on your machine, paths to $HOME/.cargo. This will include your username. If you want to keep your user's
-> username private, you might want to get GitHub Actions to build the IPA instead.
+> The binary created will contain paths to Xcode's DerivedData, and if you built minimuxer on your machine, paths to `$HOME/.cargo`. That can include your username. Prefer a clean CI build (for example the **Get IPA** workflow) if you need to share artifacts without leaking local paths.
 > 
 
-## Developing minimuxer alongside SideStore
+## StikJIT / local JIT
+
+FluxStore integrates **StikJIT** for on-device JIT enablement (see the `StikJIT/` sources and the main target’s build settings). This replaces the SideJITStreamer-oriented flow from upstream SideStore for local debugging scenarios.
+
+## Developing minimuxer alongside FluxStore
 
 Please see [minimuxer's README](https://github.com/SideStore/minimuxer) for development instructions.
