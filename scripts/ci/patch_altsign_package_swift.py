@@ -7,6 +7,9 @@ The CAltSign target uses `path: ""` for the package root; use `path: "."` instea
 
 Expects `Dependencies/AltSign` from git submodules. If that tree is missing (e.g. CI
 checkout without submodules), clones SideStore/AltSign from GitHub once.
+
+AltSign itself uses nested submodules (e.g. Dependencies/ldid, Dependencies/OpenSSL);
+those must be initialized or targets like `ldid-core` resolve as empty.
 """
 from __future__ import annotations
 
@@ -28,6 +31,10 @@ ALT_SIGN_URL = os.environ.get(
 ALT_SIGN_BRANCH = os.environ.get("FLUXSTORE_ALTSIGN_BRANCH", "master")
 
 
+def _altsign_git_root() -> bool:
+    return (ALT_DIR / ".git").exists()
+
+
 def _ensure_altsign_tree() -> None:
     if PKG.is_file():
         return
@@ -46,6 +53,7 @@ def _ensure_altsign_tree() -> None:
             "1",
             "--branch",
             ALT_SIGN_BRANCH,
+            "--recurse-submodules",
             ALT_SIGN_URL,
             str(ALT_DIR),
         ],
@@ -55,14 +63,34 @@ def _ensure_altsign_tree() -> None:
         raise RuntimeError(f"clone finished but {PKG} is still missing")
 
 
+def _init_altsign_nested_submodules() -> None:
+    if not _altsign_git_root():
+        print(
+            f"warning: {ALT_DIR} has no .git; cannot init nested submodules (ldid, OpenSSL)",
+            file=sys.stderr,
+        )
+        return
+    subprocess.run(
+        ["git", "submodule", "sync", "--recursive"],
+        cwd=str(ALT_DIR),
+        check=False,
+    )
+    subprocess.run(
+        ["git", "submodule", "update", "--init", "--recursive"],
+        cwd=str(ALT_DIR),
+        check=True,
+    )
+
+
 def main() -> int:
     try:
         _ensure_altsign_tree()
+        _init_altsign_nested_submodules()
     except (OSError, subprocess.CalledProcessError, RuntimeError) as exc:
-        print(f"error: could not obtain AltSign under Dependencies/AltSign: {exc}", file=sys.stderr)
+        print(f"error: could not obtain a complete AltSign checkout: {exc}", file=sys.stderr)
         print(
-            "hint: run `git submodule sync --recursive` and "
-            "`git submodule update --init --recursive` from the repo root.",
+            "hint: from repo root run `git submodule sync --recursive` and "
+            "`git submodule update --init --recursive`; inside AltSign run the same.",
             file=sys.stderr,
         )
         return 1
