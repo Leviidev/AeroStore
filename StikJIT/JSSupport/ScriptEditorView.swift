@@ -18,8 +18,8 @@ struct ScriptEditorView: View {
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
-    private var editorTheme: Theme {
-        colorScheme == .dark ? Theme.defaultDark : Theme.defaultLight
+    private var editorTheme: LanguageSupport.Theme {
+        colorScheme == .dark ? LanguageSupport.Theme.defaultDark : LanguageSupport.Theme.defaultLight
     }
 
     var body: some View {
@@ -32,7 +32,7 @@ struct ScriptEditorView: View {
                     text:     $scriptContent,
                     position: $position,
                     messages: $messages,
-                    language: .none
+                    language: LanguageConfiguration.none
                 )
                 .font(.system(.footnote, design: .monospaced))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

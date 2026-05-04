@@ -73,6 +73,8 @@ jobs:
           DD="${ROOT}/build/ci-DerivedData"
           SP="${ROOT}/build/ci-SourcePackages"
           mkdir -p "${ROOT}/build"
+          LOG="${ROOT}/build/xcode-archive.log"
+          set +e
           xcodebuild archive \
             -project "$PROJ" \
             -scheme SideStore \
@@ -86,7 +88,15 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            SWIFT_OPTIMIZATION_LEVEL="-Onone"
+            SWIFT_OPTIMIZATION_LEVEL="-Onone" \
+            2>&1 | tee "$LOG"
+          XC="${PIPESTATUS[0]}"
+          set -e
+          if [[ "$XC" -ne 0 ]]; then
+            echo "::error::xcodebuild archive failed (exit $XC). First compiler/driver errors:"
+            grep -E " error: |fatal error:" "$LOG" | head -120 || true
+            exit "$XC"
+          fi
 
       - name: Make IPA zip
         run: |

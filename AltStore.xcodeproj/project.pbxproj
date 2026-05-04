@@ -1196,7 +1196,6 @@
 			isa = PBXGroup;
 			children = (
 				A8EB8CB32F5453CD0094BC01 /* Roxas.framework */,
-				A8EB8CB52F5453CD0094BC01 /* Roxas.framework */,
 				A8EB8CB72F5453CD0094BC01 /* RoxasTests.xctest */,
 			);
 			name = Products;
@@ -2516,8 +2515,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/kishikawakatsumi/KeychainAccess";
 			requirement = {
-				branch = master;
-				kind = branch;
+				kind = exactVersion;
+				version = 4.2.2;
 			};
 		};
 		A8B645FD2D70C1AD00125819 /* XCRemoteSwiftPackageReference "MarkdownKit" */ = {
@@ -2540,8 +2539,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/mchakravarty/CodeEditorView";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.15.4;
+				kind = exactVersion;
+				version = 0.15.4;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
