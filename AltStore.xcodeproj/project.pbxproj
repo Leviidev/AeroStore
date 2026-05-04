@@ -234,14 +234,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A8BD32D02F5440300045335F /* Roxas.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = BFADAFF819AE7BB70050CF31;
+			remoteGlobalIDString = BFADAFF719AE7BB70050CF31;
 			remoteInfo = Roxas;
 		};
 		B8EB8CC22F5453CE0094BC01 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A8BD32D02F5440300045335F /* Roxas.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = BFADAFF819AE7BB70050CF31;
+			remoteGlobalIDString = BFADAFF719AE7BB70050CF31;
 			remoteInfo = Roxas;
 		};
 		BF66EE832501AE50007EE018 /* PBXContainerItemProxy */ = {
