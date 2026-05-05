@@ -105,18 +105,7 @@ struct ScriptListView: View {
                 prompt: "Search scripts…"
             )
             .navigationTitle(isPickerMode ? "Choose Script" : "Scripts")
-            .toolbar {
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    if !isPickerMode {
-                        Button { showNewFileAlert = true } label: {
-                            Label("New", systemImage: "doc.badge.plus")
-                        }
-                        Button { showImporter = true } label: {
-                            Label("Import", systemImage: "tray.and.arrow.down")
-                        }
-                    }
-                }
-            }
+            .toolbar(content: { toolbarContent })
             .onAppear(perform: loadScripts)
             .alert("New Script", isPresented: $showNewFileAlert) {
                 TextField("Filename", text: $newFileName)
@@ -172,28 +161,37 @@ struct ScriptListView: View {
     private func scriptRow(_ script: URL) -> some View {
         let isDefault = defaultScriptName == script.lastPathComponent
         if isPickerMode {
-            Button {
+            Button(action: {
                 onSelectScript?(script)
-            } label: {
-                HStack {
-                    Label(script.lastPathComponent, systemImage: "doc.text.fill")
-                    Spacer()
-                    if isDefault {
-                        Image(systemName: "star.fill").foregroundStyle(.yellow).imageScale(.small)
-                    }
-                }
-            }
+            }) { rowLabel(script, isDefault: isDefault) }
         } else {
             NavigationLink {
                 ScriptEditorView(scriptURL: script)
             } label: {
-                HStack {
-                    Label(script.lastPathComponent, systemImage: "doc.text.fill")
-                    Spacer()
-                    if isDefault {
-                        Image(systemName: "star.fill").foregroundStyle(.yellow).imageScale(.small)
-                    }
-                }
+                rowLabel(script, isDefault: isDefault)
+            }
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        if !isPickerMode {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Import") { showImporter = true }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("New") { showNewFileAlert = true }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func rowLabel(_ script: URL, isDefault: Bool) -> some View {
+        HStack {
+            Label(script.lastPathComponent, systemImage: "doc.text.fill")
+            Spacer()
+            if isDefault {
+                Image(systemName: "star.fill").foregroundStyle(.yellow).imageScale(.small)
             }
         }
     }

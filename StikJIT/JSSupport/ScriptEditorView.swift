@@ -44,15 +44,12 @@ struct ScriptEditorView: View {
         .navigationTitle(scriptURL.lastPathComponent)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear(perform: loadScript)
-        .toolbar {
+        .toolbar(content: {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    saveScript()
-                    dismiss()
-                }
+                Button("Save", action: saveAndDismiss)
             }
-        }
-                .tint(colorScheme == .dark ? .white : .black)
+        })
+        .tint(colorScheme == .dark ? .white : .black)
         .toolbar(.hidden, for: .tabBar)
     }
 
@@ -62,5 +59,10 @@ struct ScriptEditorView: View {
 
     private func saveScript() {
         try? scriptContent.write(to: scriptURL, atomically: true, encoding: .utf8)
+    }
+
+    private func saveAndDismiss() {
+        saveScript()
+        dismiss()
     }
 }
