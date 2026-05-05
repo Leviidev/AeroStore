@@ -9,21 +9,51 @@
 import AppIntents
 
 @available(iOS 17, *)
-public struct ShortcutsProvider: AppShortcutsProvider
-{
-    public static var appShortcuts: [AppShortcut] {
-        AppShortcut(intent: RefreshAllAppsIntent(), 
-                    phrases: [
-                        "Refresh \(.applicationName)",
-                        "Refresh \(.applicationName) apps",
-                        "Refresh my \(.applicationName) apps",
-                        "Refresh apps with \(.applicationName)",
-                    ],
-                    shortTitle: "Refresh All Apps",
-                    systemImageName: "arrow.triangle.2.circlepath")
+struct ShortcutsProvider: AppShortcutsProvider {
+    @AppShortcutsBuilder
+    static var appShortcuts: [AppShortcut] {
+        AppShortcut(
+            intent: RefreshAllAppsIntent(),
+            phrases: [
+                "Refresh \(.applicationName)",
+                "Refresh \(.applicationName) apps",
+                "Refresh my \(.applicationName) apps",
+                "Refresh apps with \(.applicationName)",
+            ],
+            shortTitle: "Refresh All Apps",
+            systemImageName: "arrow.triangle.2.circlepath"
+        )
+        AppShortcut(
+            intent: EnableJITIntent(),
+            phrases: [
+                "Enable JIT for \(\.$app) with \(.applicationName)",
+                "Enable JIT for \(\.$app) using \(.applicationName)",
+                "Enable JIT for \(\.$app) in \(.applicationName)",
+                "\(.applicationName) enable JIT for \(\.$app)",
+                "\(.applicationName) enable JIT",
+                "Use \(.applicationName) to enable JIT for \(\.$app)",
+                "Use \(.applicationName) to enable JIT",
+            ],
+            shortTitle: "Enable JIT",
+            systemImageName: "bolt.fill"
+        )
+        AppShortcut(
+            intent: KillProcessIntent(),
+            phrases: [
+                "Kill \(\.$process) with \(.applicationName)",
+                "Kill \(\.$process) using \(.applicationName)",
+                "Kill \(\.$process) in \(.applicationName)",
+                "\(.applicationName) kill \(\.$process)",
+                "\(.applicationName) kill process",
+                "Use \(.applicationName) to kill \(\.$process)",
+                "Use \(.applicationName) to stop \(\.$process)",
+            ],
+            shortTitle: "Kill Process",
+            systemImageName: "xmark.circle.fill"
+        )
     }
-    
-    public static var shortcutTileColor: ShortcutTileColor {
-        return .teal
+
+    static var shortcutTileColor: ShortcutTileColor {
+        .teal
     }
 }

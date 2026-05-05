@@ -259,41 +259,6 @@ struct KillProcessIntent: AppIntent {
     }
 }
 
-// MARK: - Shortcuts Provider
-
-struct StikDebugShortcuts: AppShortcutsProvider {
-    static var appShortcuts: [AppShortcut] {
-        AppShortcut(
-            intent: EnableJITIntent(),
-            phrases: [
-                "Enable JIT for \(\.$app) with \(.applicationName)",
-                "Enable JIT for \(\.$app) using \(.applicationName)",
-                "Enable JIT for \(\.$app) in \(.applicationName)",
-                "\(.applicationName) enable JIT for \(\.$app)",
-                "\(.applicationName) enable JIT",
-                "Use \(.applicationName) to enable JIT for \(\.$app)",
-                "Use \(.applicationName) to enable JIT"
-            ],
-            shortTitle: "Enable JIT",
-            systemImageName: "bolt.fill"
-        )
-        AppShortcut(
-            intent: KillProcessIntent(),
-            phrases: [
-                "Kill \(\.$process) with \(.applicationName)",
-                "Kill \(\.$process) using \(.applicationName)",
-                "Kill \(\.$process) in \(.applicationName)",
-                "\(.applicationName) kill \(\.$process)",
-                "\(.applicationName) kill process",
-                "Use \(.applicationName) to kill \(\.$process)",
-                "Use \(.applicationName) to stop \(\.$process)"
-            ],
-            shortTitle: "Kill Process",
-            systemImageName: "xmark.circle.fill"
-        )
-    }
-}
-
 // MARK: - Shared Tunnel Helper
 
 func ensureTunnel() async {
