@@ -514,7 +514,7 @@ struct LocationSimulationView: View {
 
     private var searchResultsListBase: some View {
         List(searchCompleter.results.prefix(5), id: \.self) { result in
-            Button {
+            SwiftUI.Button {
                 selectSearchResult(result)
             } label: {
                 VStack(alignment: .leading, spacing: 2) {
@@ -616,13 +616,13 @@ struct LocationSimulationView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarLeading) {
-                Button {
+                SwiftUI.Button {
                     showBookmarks = true
                 } label: {
                     Image(systemName: "bookmark.fill")
                 }
 
-                Button {
+                SwiftUI.Button {
                     showRouteSearch = true
                 } label: {
                     Image(systemName: "point.topleft.down.curvedto.point.bottomright.up")
@@ -744,7 +744,7 @@ struct LocationSimulationView: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(!pairingExists || isBusy || isLoadingRoute)
 
-                Button {
+                SwiftUI.Button {
                     showSaveBookmark = true
                 } label: {
                     Image(systemName: "bookmark")
@@ -1167,7 +1167,7 @@ private struct RouteSearchSheet: View {
                     ScrollView {
                         LazyVStack(spacing: 0) {
                             ForEach(Array(activeResults.enumerated()), id: \.offset) { index, result in
-                                Button {
+                                SwiftUI.Button {
                                     resolve(result)
                                 } label: {
                                     VStack(alignment: .leading, spacing: 2) {
@@ -1347,7 +1347,7 @@ struct BookmarksView: View {
                 } else {
                     List {
                         ForEach(bookmarks) { bookmark in
-                            Button {
+                            SwiftUI.Button {
                                 onSelect(bookmark)
                             } label: {
                                 VStack(alignment: .leading, spacing: 2) {

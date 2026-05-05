@@ -175,23 +175,7 @@ struct DeviceInfoView: View {
                 if !mgr.entries.isEmpty {
                     Section {
                         ForEach(filteredEntries, id: \.key) { entry in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(entry.key)
-                                    .font(.subheadline.weight(.semibold))
-                                Text(entry.value)
-                                    .font(.caption.monospaced())
-                                    .foregroundStyle(.secondary)
-                                    .textSelection(.enabled)
-                            }
-                            .padding(.vertical, 2)
-                            .contextMenu {
-                                Button { copyToPasteboard(entry.value) } label: {
-                                    Label("Copy Value", systemImage: "doc.on.doc")
-                                }
-                                Button { copyToPasteboard("\(entry.key): \(entry.value)") } label: {
-                                    Label("Copy Key & Value", systemImage: "doc.on.clipboard")
-                                }
-                            }
+                            deviceInfoEntryRow(entry: entry)
                         }
                     }
                 } else if !mgr.busy && isPaired {
@@ -235,11 +219,11 @@ struct DeviceInfoView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     if isPaired {
-                        Button { mgr.initAndLoad() } label: {
+                        SwiftUI.Button { mgr.initAndLoad() } label: {
                             Label("Reload", systemImage: "arrow.clockwise")
                         }
 
-                        Button {
+                        SwiftUI.Button {
                             do {
                                 exportURL = try mgr.exportToCSV()
                                 isShowingExporter = true
@@ -252,13 +236,13 @@ struct DeviceInfoView: View {
                         .disabled(mgr.entries.isEmpty)
 
                         Menu {
-                            Button { copyAllText() } label: {
+                            SwiftUI.Button { copyAllText() } label: {
                                 Label("Copy All (Text)", systemImage: "doc.on.doc")
                             }
-                            Button { copyAllCSV() } label: {
+                            SwiftUI.Button { copyAllCSV() } label: {
                                 Label("Copy All (CSV)", systemImage: "tablecells")
                             }
-                            Button { shareAll() } label: {
+                            SwiftUI.Button { shareAll() } label: {
                                 Label("Share…", systemImage: "square.and.arrow.up.on.square")
                             }
                         } label: {
@@ -269,7 +253,7 @@ struct DeviceInfoView: View {
                 }
                 SwiftUI.ToolbarItem(placement: .navigationBarLeading) {
                     if !isPaired {
-                        Button { importer = true } label: {
+                        SwiftUI.Button { importer = true } label: {
                             Label("Import Pairing File", systemImage: "doc.badge.plus")
                         }
                     }
@@ -296,7 +280,28 @@ struct DeviceInfoView: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private func deviceInfoEntryRow(entry: (key: String, value: String)) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(entry.key)
+                .font(.subheadline.weight(.semibold))
+            Text(entry.value)
+                .font(.caption.monospaced())
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+        }
+        .padding(.vertical, 2)
+        .contextMenu {
+            SwiftUI.Button { copyToPasteboard(entry.value) } label: {
+                Label("Copy Value", systemImage: "doc.on.doc")
             }
+            SwiftUI.Button { copyToPasteboard("\(entry.key): \(entry.value)") } label: {
+                Label("Copy Key & Value", systemImage: "doc.on.clipboard")
+            }
+        }
+    }
 
     // MARK: - Copy / Share helpers
 

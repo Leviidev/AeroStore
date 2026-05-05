@@ -177,9 +177,8 @@ private enum AppListTab: Int, CaseIterable, Identifiable {
                 .toolbar {
                     SwiftUI.ToolbarItem(placement: .principal) {
                         Picker("", selection: $selectedTab) {
-                            ForEach(AppListTab.allCases) { tab in
-                                Text(tab.title.localized).tag(tab)
-                            }
+                            Text(AppListTab.debuggable.title.localized).tag(AppListTab.debuggable)
+                            Text(AppListTab.launch.title.localized).tag(AppListTab.launch)
                         }
                         .pickerStyle(.segmented)
                         .frame(width: 220)
@@ -197,7 +196,7 @@ private enum AppListTab: Int, CaseIterable, Identifiable {
                         }
                     } else {
                         SwiftUI.ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
+                            SwiftUI.Button {
                                 viewModel.refreshAppLists()
                             } label: {
                                 Image(systemName: "arrow.clockwise")
@@ -391,7 +390,7 @@ private enum AppListTab: Int, CaseIterable, Identifiable {
                                 }
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button {
+                                SwiftUI.Button {
                                     toggleSystemPin(bundleID: bundleID, appName: appName)
                                 } label: {
                                     Label((isPinned ? "Unpin" : "Pin").localized, systemImage: "star")
@@ -587,18 +586,18 @@ struct AppButton: View {
                 )
                 .disabled(!favoriteApps.contains(bundleID) && favoriteApps.count >= 4)
             }
-            Button {
+            SwiftUI.Button {
                 UIPasteboard.general.string = bundleID
                 Haptics.light()
             } label: {
                 Label("Copy Bundle ID", systemImage: "doc.on.doc")
             }
             if enableAdvancedOptions {
-                Button { showScriptPicker = true } label: {
+                SwiftUI.Button { showScriptPicker = true } label: {
                     Label("Assign Script", systemImage: "chevron.left.slash.chevron.right")
                 }
                 if assignedScriptName != nil {
-                    Button {
+                    SwiftUI.Button {
                         resetScriptAssignment()
                     } label: {
                         Label("Reset Script", systemImage: "arrow.uturn.left")
@@ -607,14 +606,14 @@ struct AppButton: View {
             }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button {
+            SwiftUI.Button {
                 toggleFavorite()
             } label: {
                 Label(favoriteApps.contains(bundleID) ? "Unfavorite" : "Favorite", systemImage: "star")
             }
             .tint(.yellow)
 
-            Button {
+            SwiftUI.Button {
                 UIPasteboard.general.string = bundleID
                 Haptics.light()
             } label: {
@@ -759,7 +758,7 @@ struct LaunchAppRow: View {
     }
 
     var body: some View {
-        Button {
+        SwiftUI.Button {
             guard !isLaunching else { return }
             launchAction()
         } label: {

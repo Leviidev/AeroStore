@@ -256,7 +256,7 @@ private struct ProcessRow: View {
                         .tint(.accentColor)
                 } else {
                     HStack(spacing: 8) {
-                        Button {
+                        SwiftUI.Button {
                             onResumeTap(process)
                         } label: {
                             Image(systemName: ProcessControlAction.resume.systemImage)
@@ -268,7 +268,7 @@ private struct ProcessRow: View {
                         .labelStyle(.iconOnly)
                         .disabled(isBusy)
 
-                        Button {
+                        SwiftUI.Button {
                             onPauseTap(process)
                         } label: {
                             Image(systemName: ProcessControlAction.pause.systemImage)
@@ -280,7 +280,7 @@ private struct ProcessRow: View {
                         .labelStyle(.iconOnly)
                         .disabled(isBusy)
 
-                        Button {
+                        SwiftUI.Button {
                             onKillTap(process)
                         } label: {
                             if isConfirming {

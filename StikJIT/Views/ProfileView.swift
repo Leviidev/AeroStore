@@ -197,7 +197,7 @@ struct ProfileView: View {
                                     }
                                 }
                                 
-                                Button {
+                                SwiftUI.Button {
                                     withAnimation {
                                         if showMore { expandedApps.remove(entry.id) }
                                         else { expandedApps.insert(entry.id) }
@@ -235,13 +235,13 @@ struct ProfileView: View {
             .navigationTitle("App Expiry")
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    Button {
+                    SwiftUI.Button {
                         isImporterPresented = true
                     } label: {
                         Label("Add", systemImage: "plus")
                     }
                     
-                    Button {
+                    SwiftUI.Button {
                         Task { await loadData(force: true) }
                     } label: {
                         Label("Reload", systemImage: "arrow.clockwise")

@@ -202,7 +202,7 @@ struct ConsoleLogsView: View {
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                 if !syslogSearchText.isEmpty {
-                    Button {
+                    SwiftUI.Button {
                         syslogSearchText = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")

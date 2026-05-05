@@ -86,7 +86,7 @@ struct SettingsView: View {
 
                 // 3) Pairing File
                 Section("Pairing File") {
-                    Button { isShowingPairingFilePicker = true } label: {
+                    SwiftUI.Button { isShowingPairingFilePicker = true } label: {
                         Label("Import Pairing File", systemImage: "doc.badge.plus")
                     }
                     if showPairingFileMessage && !isImportingFile {
@@ -145,10 +145,10 @@ struct SettingsView: View {
                                 .keyboardType(.numbersAndPunctuation)
                                 .submitLabel(.done)
                     }
-                    Button { openAppFolder() } label: {
+                    SwiftUI.Button { openAppFolder() } label: {
                         Label("App Folder", systemImage: "folder")
                     }.foregroundStyle(.primary)
-                    Button { showDDIConfirmation = true } label: {
+                    SwiftUI.Button { showDDIConfirmation = true } label: {
                         Label("Redownload DDI", systemImage: "arrow.down.circle")
                     }.foregroundStyle(.primary).disabled(isRedownloadingDDI)
                     if isRedownloadingDDI {
@@ -376,7 +376,7 @@ struct TabCustomizationView: View {
             if !availableOptions.isEmpty {
                 Section("Available") {
                     ForEach(availableOptions) { option in
-                        Button {
+                        SwiftUI.Button {
                             var ids = selectedIDs
                             guard ids.count < TabConfiguration.maxSelectableTabs else { return }
                             ids.append(option.id)
