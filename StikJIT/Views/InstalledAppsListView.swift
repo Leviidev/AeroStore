@@ -307,7 +307,7 @@ private enum AppListTab: Int, CaseIterable, Identifiable {
                     if !filteredFavoriteBundles.isEmpty {
                         Section(String(format: "Favorites (%d/4)".localized, filteredFavoriteBundles.count)) {
                             ForEach(filteredFavoriteBundles, id: \.self) { bundleID in
-                                AppSwiftUI.Button(
+                                AppButton(
                                     bundleID: bundleID,
                                     appName: viewModel.debuggableApps[bundleID] ?? fallbackReadableName(from: bundleID),
                                     recentApps: $recentApps, favoriteApps: $favoriteApps,
@@ -319,7 +319,7 @@ private enum AppListTab: Int, CaseIterable, Identifiable {
                     if !filteredRecentBundles.isEmpty {
                         Section("Recents".localized) {
                             ForEach(filteredRecentBundles, id: \.self) { bundleID in
-                                AppSwiftUI.Button(
+                                AppButton(
                                     bundleID: bundleID,
                                     appName: viewModel.debuggableApps[bundleID] ?? fallbackReadableName(from: bundleID),
                                     recentApps: $recentApps, favoriteApps: $favoriteApps,
@@ -330,7 +330,7 @@ private enum AppListTab: Int, CaseIterable, Identifiable {
                     }
                     Section("Apps with get-task-allow".localized) {
                         ForEach(filteredDebuggableApps, id: \.key) { bundleID, appName in
-                            AppSwiftUI.Button(
+                            AppButton(
                                 bundleID: bundleID, appName: appName,
                                 recentApps: $recentApps, favoriteApps: $favoriteApps,
                                 onSelectApp: onSelectApp, sharedDefaults: sharedDefaults, performanceMode: performanceMode

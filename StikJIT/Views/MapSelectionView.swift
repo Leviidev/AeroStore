@@ -1367,7 +1367,7 @@ struct BookmarksView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if !bookmarks.isEmpty {
-                    EditSwiftUI.Button()
+                    EditButton()
                 }
             }
         }

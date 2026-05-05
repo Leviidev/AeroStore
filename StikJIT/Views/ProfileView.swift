@@ -286,7 +286,7 @@ struct ProfileView: View {
         }
     }
     
-    private func profileActionSwiftUI.Button(icon: String, color: Color, action: @escaping () -> Void) -> some View {
+    private func profileActionButton(icon: String, color: Color, action: @escaping () -> Void) -> some View {
         SwiftUI.Button(action: action) {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .semibold))
@@ -329,10 +329,10 @@ struct ProfileView: View {
                 }
                 Spacer()
                 HStack(spacing: 16) {
-                    profileActionSwiftUI.Button(icon: "square.and.arrow.down", color: .blue) {
+                    profileActionButton(icon: "square.and.arrow.down", color: .blue) {
                         saveProfile(profile: match.profile)
                     }
-                    profileActionSwiftUI.Button(icon: "trash", color: .refreshRed) {
+                    profileActionButton(icon: "trash", color: .refreshRed) {
                         removeProfilePrompt(entry: match.profile)
                     }
                 }

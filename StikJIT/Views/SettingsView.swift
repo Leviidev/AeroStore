@@ -393,7 +393,7 @@ struct TabCustomizationView: View {
         }
         .navigationTitle("Tab Bar")
         .toolbar {
-            EditSwiftUI.Button()
+            EditButton()
         }
     }
 }
