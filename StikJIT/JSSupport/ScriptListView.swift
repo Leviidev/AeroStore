@@ -42,10 +42,10 @@ struct ScriptListView: View {
             List {
                 if isPickerMode {
                     Section {
-                        Button(action: {
+                        SwiftUI.Button(action: {
                             onSelectScript?(nil)
                         }) {
-                            Label("No Script", systemImage: "nosign")
+                            SwiftUI.Label("No Script", systemImage: "nosign")
                         }
                     }
                 }
@@ -70,28 +70,28 @@ struct ScriptListView: View {
                             scriptRow(script)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     if !isPickerMode {
-                                        Button(role: .destructive) {
+                                        SwiftUI.Button(role: .destructive) {
                                             pendingDelete = script
                                             showDeleteConfirmation = true
-                                        } label: { Label("Delete", systemImage: "trash") }
+                                        } label: { SwiftUI.Label("Delete", systemImage: "trash") }
                                     }
                                 }
                                 .contextMenu {
-                                    Button { copyName(script) } label: {
-                                        Label("Copy Filename", systemImage: "doc.on.doc")
+                                    SwiftUI.Button { copyName(script) } label: {
+                                        SwiftUI.Label("Copy Filename", systemImage: "doc.on.doc")
                                     }
-                                    Button { copyPath(script) } label: {
-                                        Label("Copy Path", systemImage: "folder")
+                                    SwiftUI.Button { copyPath(script) } label: {
+                                        SwiftUI.Label("Copy Path", systemImage: "folder")
                                     }
                                     if !isPickerMode {
-                                        Button { saveDefaultScript(script) } label: {
-                                            Label("Set Default", systemImage: "star")
+                                        SwiftUI.Button { saveDefaultScript(script) } label: {
+                                            SwiftUI.Label("Set Default", systemImage: "star")
                                         }
                                         Divider()
-                                        Button(role: .destructive) {
+                                        SwiftUI.Button(role: .destructive) {
                                             pendingDelete = script
                                             showDeleteConfirmation = true
-                                        } label: { Label("Delete", systemImage: "trash") }
+                                        } label: { SwiftUI.Label("Delete", systemImage: "trash") }
                                     }
                                 }
                         }
@@ -108,15 +108,15 @@ struct ScriptListView: View {
             .toolbar(content: { toolbarContent })
             .onAppear(perform: loadScripts)
             .alert("New Script", isPresented: $showNewFileAlert) {
-                TextField("Filename", text: $newFileName)
-                Button("Create", action: createNewScript)
-                Button("Cancel", role: .cancel) { }
+                SwiftUI.TextField("Filename", text: $newFileName)
+                SwiftUI.Button("Create", action: createNewScript)
+                SwiftUI.Button("Cancel", role: .cancel) { }
             }
             .alert("Delete Script?", isPresented: $showDeleteConfirmation, presenting: pendingDelete) { script in
-                Button("Delete", role: .destructive) { deleteScript(script) }
-                Button("Cancel", role: .cancel) { pendingDelete = nil }
+                SwiftUI.Button("Delete", role: .destructive) { deleteScript(script) }
+                SwiftUI.Button("Cancel", role: .cancel) { pendingDelete = nil }
             } message: { script in
-                Text("Delete \(script.lastPathComponent)? This cannot be undone.")
+                SwiftUI.Text("Delete \(script.lastPathComponent)? This cannot be undone.")
             }
             .fileImporter(
                 isPresented: $showImporter,
@@ -149,9 +149,9 @@ struct ScriptListView: View {
             }
         }
         .alert(alertTitle, isPresented: $alertVisible) {
-            Button("OK", role: .cancel) { }
+            SwiftUI.Button("OK", role: .cancel) { }
         } message: {
-            Text(alertMessage)
+            SwiftUI.Text(alertMessage)
         }
     }
 
@@ -160,14 +160,14 @@ struct ScriptListView: View {
     private func scriptRow(_ script: URL) -> AnyView {
         let isDefault = defaultScriptName == script.lastPathComponent
         if isPickerMode {
-            let button = Button(action: {
+            let button = SwiftUI.Button(action: {
                 onSelectScript?(script)
             }) {
                 rowLabel(script, isDefault: isDefault)
             }
             return AnyView(button)
         } else {
-            let link = NavigationLink {
+            let link = SwiftUI.NavigationLink {
                 ScriptEditorView(scriptURL: script)
             } label: {
                 rowLabel(script, isDefault: isDefault)
@@ -179,14 +179,14 @@ struct ScriptListView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         if !isPickerMode {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showImporter = true }) {
-                    Text("Import")
+            SwiftUI.ToolbarItem(placement: .navigationBarTrailing) {
+                SwiftUI.Button(action: { showImporter = true }) {
+                    SwiftUI.Text("Import")
                 }
             }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showNewFileAlert = true }) {
-                    Text("New")
+            SwiftUI.ToolbarItem(placement: .navigationBarTrailing) {
+                SwiftUI.Button(action: { showNewFileAlert = true }) {
+                    SwiftUI.Text("New")
                 }
             }
         }
@@ -195,10 +195,10 @@ struct ScriptListView: View {
     @ViewBuilder
     private func rowLabel(_ script: URL, isDefault: Bool) -> some View {
         HStack {
-            Label(script.lastPathComponent, systemImage: "doc.text.fill")
-            Spacer()
+            SwiftUI.Label(script.lastPathComponent, systemImage: "doc.text.fill")
+            SwiftUI.Spacer()
             if isDefault {
-                Image(systemName: "star.fill").foregroundStyle(.yellow).imageScale(.small)
+                SwiftUI.Image(systemName: "star.fill").foregroundStyle(.yellow).imageScale(.small)
             }
         }
     }

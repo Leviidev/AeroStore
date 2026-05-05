@@ -45,9 +45,9 @@ struct ScriptEditorView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear(perform: loadScript)
         .toolbar(content: {
-            ToolbarItem(placement: .confirmationAction) {
-                Button(action: saveAndDismiss) {
-                    Text("Save")
+            SwiftUI.ToolbarItem(placement: .confirmationAction) {
+                SwiftUI.Button(action: saveAndDismiss) {
+                    SwiftUI.Text("Save")
                 }
             }
         })
