@@ -1559,7 +1559,7 @@
                         <rect key="frame" x="0.0" y="124" width="402" height="106"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <edgeInsets key="layoutMargins" top="8" left="20" bottom="8" right="8"/>
-                        <color key="tintColor" name="Primary"/>
+                        <color key="tintColor" systemColor="labelColor"/>
                         <color key="barTintColor" name="Background"/>
                         <userDefinedRuntimeAttributes>
                             <userDefinedRuntimeAttribute type="boolean" keyPath="automaticallyAdjustsItemPositions" value="NO"/>
