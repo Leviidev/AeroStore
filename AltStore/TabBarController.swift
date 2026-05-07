@@ -42,12 +42,36 @@ final class TabBarController: UITabBarController
     override func viewDidLoad() 
     {
         super.viewDidLoad()
+        self.configureTabBarAppearance()
         
         let browseNavigationController = self.viewControllers![Tab.browse.rawValue] as! UINavigationController
         browseNavigationController.tabBarItem.image = UIImage(systemName: "bag")
         
         let sourcesNavigationController = self.viewControllers![Tab.sources.rawValue] as! UINavigationController
         self.sourcesViewController = sourcesNavigationController.viewControllers.first as? SourcesViewController
+    }
+
+    private func configureTabBarAppearance()
+    {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .altBackground
+        appearance.shadowColor = UIColor.fluxCardBorder
+        appearance.stackedLayoutAppearance.normal.iconColor = UIColor.fluxSecondaryText
+        appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+            .foregroundColor: UIColor.fluxSecondaryText,
+            .font: UIFont.systemFont(ofSize: 11, weight: .medium)
+        ]
+        appearance.stackedLayoutAppearance.selected.iconColor = .altPrimary
+        appearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+            .foregroundColor: UIColor.altPrimary,
+            .font: UIFont.systemFont(ofSize: 11, weight: .semibold)
+        ]
+
+        self.tabBar.standardAppearance = appearance
+        self.tabBar.scrollEdgeAppearance = appearance
+        self.tabBar.tintColor = .altPrimary
+        self.tabBar.unselectedItemTintColor = .fluxSecondaryText
     }
     
     override func viewDidAppear(_ animated: Bool)

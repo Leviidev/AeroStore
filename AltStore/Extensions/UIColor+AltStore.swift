@@ -11,6 +11,21 @@ import UIKit
 extension UIColor
 {
     static let altBackground = UIColor(named: "Background")!
+    static let fluxCardBackground = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.13, green: 0.14, blue: 0.17, alpha: 1.0)
+            : UIColor.white.withAlphaComponent(0.92)
+    }
+    static let fluxCardBorder = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor.white.withAlphaComponent(0.10)
+            : UIColor.black.withAlphaComponent(0.06)
+    }
+    static let fluxSecondaryText = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(white: 0.74, alpha: 1.0)
+            : UIColor(white: 0.38, alpha: 1.0)
+    }
 }
 
 extension UIColor

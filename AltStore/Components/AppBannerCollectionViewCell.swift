@@ -35,6 +35,8 @@ class AppBannerCollectionViewCell: UICollectionViewListCell
         
         self.backgroundView = UIView() // Clear background
         self.selectedBackgroundView = UIView() // Disable selection highlighting.
+        self.contentView.backgroundColor = .clear
+        self.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 6, leading: 8, bottom: 6, trailing: 8)
         
         self.contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         self.contentView.preservesSuperviewLayoutMargins = true

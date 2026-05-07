@@ -84,6 +84,10 @@ class MyAppsViewController: UICollectionViewController, PeekPopPreviewing
         self.collectionView.dragDelegate = self
         self.collectionView.dropDelegate = self
         self.collectionView.dragInteractionEnabled = true
+        self.collectionView.backgroundColor = .altBackground
+        self.collectionView.alwaysBounceVertical = true
+        self.collectionView.contentInset.bottom = 28
+        self.collectionView.verticalScrollIndicatorInsets.bottom = 12
                 
         self.prototypeUpdateCell = UpdateCollectionViewCell.instantiate(with: UpdateCollectionViewCell.nib!)
         self.prototypeUpdateCell.contentView.translatesAutoresizingMaskIntoConstraints = false

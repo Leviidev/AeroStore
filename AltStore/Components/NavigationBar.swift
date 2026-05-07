@@ -45,32 +45,34 @@ class NavigationBar: UINavigationBar
     private func initialize()
     {
         let standardAppearance = UINavigationBarAppearance()
-        standardAppearance.configureWithDefaultBackground()
-        standardAppearance.shadowColor = nil
+        standardAppearance.configureWithOpaqueBackground()
+        standardAppearance.backgroundColor = .altBackground
+        standardAppearance.shadowColor = UIColor.fluxCardBorder
         
         let edgeAppearance = UINavigationBarAppearance()
         edgeAppearance.configureWithOpaqueBackground()
-        edgeAppearance.backgroundColor = self.barTintColor
-        edgeAppearance.shadowColor = nil
+        edgeAppearance.backgroundColor = .altBackground
+        edgeAppearance.shadowColor = UIColor.fluxCardBorder
         
-        if let tintColor = self.barTintColor
-        {
-            let textAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
-            
-            standardAppearance.backgroundColor = tintColor
-            standardAppearance.titleTextAttributes = textAttributes
-            standardAppearance.largeTitleTextAttributes = textAttributes
-            
-            edgeAppearance.titleTextAttributes = textAttributes
-            edgeAppearance.largeTitleTextAttributes = textAttributes
-        }
-        else
-        {
-            standardAppearance.backgroundColor = nil
-        }
+        let titleAttrs: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+        ]
+        let largeTitleAttrs: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 32, weight: .bold)
+        ]
+        standardAppearance.titleTextAttributes = titleAttrs
+        standardAppearance.largeTitleTextAttributes = largeTitleAttrs
+        edgeAppearance.titleTextAttributes = titleAttrs
+        edgeAppearance.largeTitleTextAttributes = largeTitleAttrs
+        standardAppearance.configureWithTintColor(.altPrimary)
+        edgeAppearance.configureWithTintColor(.altPrimary)
         
         self.scrollEdgeAppearance = edgeAppearance
         self.standardAppearance = standardAppearance
+        self.compactAppearance = standardAppearance
+        self.tintColor = .altPrimary
     }
     
     override func layoutSubviews()

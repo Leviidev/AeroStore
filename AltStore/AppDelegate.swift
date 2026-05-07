@@ -201,6 +201,7 @@ private extension AppDelegate
     func setTintColor()
     {
         self.window?.tintColor = .altPrimary
+        self.window?.backgroundColor = .altBackground
     }
     
     func prepareImageCache()

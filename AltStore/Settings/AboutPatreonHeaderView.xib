@@ -36,7 +36,7 @@
                                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="hkS-oz-wiT">
                                                     <rect key="frame" x="0.0" y="0.0" width="278" height="55"/>
                                                     <subviews>
-                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="SideTeam" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="DTd-Yu-HXr" userLabel="Team name">
+                                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="FluxStore" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="DTd-Yu-HXr" userLabel="Team name">
                                                             <rect key="frame" x="0.0" y="0.0" width="278" height="21.5"/>
                                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
                                                             <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -60,13 +60,13 @@
                                 <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="NO" editable="NO" textAlignment="natural" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FeG-e5-LJl">
                                     <rect key="frame" x="0.0" y="65" width="343" height="124"/>
                                     <color key="backgroundColor" white="1" alpha="0.13" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <string key="text">Thank you for using SideStore!
+                                    <string key="text">Thank you for using FluxStore!
         
-Subscribing to the patreon supports us and makes sure we can continue developing SideStore for you.
+Subscribing to Patreon supports us and helps us keep improving FluxStore for you.
     
-Following us on social media allows us to give quick updates and spread the word about sideloading!
+Following us on social media lets us share updates and spread the word about sideloading!
         
--SideTeam</string>
+-FluxStore Team</string>
                                     <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                     <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>

@@ -88,6 +88,8 @@ class FeaturedViewController: UICollectionViewController
         self.collectionView.backgroundColor = .altBackground
         self.collectionView.directionalLayoutMargins.leading = 20
         self.collectionView.directionalLayoutMargins.trailing = 20
+        self.collectionView.contentInset.bottom = 28
+        self.collectionView.verticalScrollIndicatorInsets.bottom = 12
         
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         self.searchBrowseViewController = storyboard.instantiateViewController(identifier: "browseViewController") { coder in

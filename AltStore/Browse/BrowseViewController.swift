@@ -81,6 +81,8 @@ class BrowseViewController: UICollectionViewController, PeekPopPreviewing
         
         self.collectionView.backgroundColor = .altBackground
         self.collectionView.alwaysBounceVertical = true
+        self.collectionView.contentInset.bottom = 28
+        self.collectionView.verticalScrollIndicatorInsets.bottom = 12
         
         self.dataSource.searchController.searchableKeyPaths = [#keyPath(StoreApp.name),
                                                                #keyPath(StoreApp.subtitle),
@@ -123,7 +125,7 @@ class BrowseViewController: UICollectionViewController, PeekPopPreviewing
         self.titleCategoryIconView.contentMode = .scaleAspectFit
         
         self.titleLabel = UILabel()
-        self.titleLabel.font = UIFont.preferredFont(forTextStyle: .headline)
+        self.titleLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         
         self.titleStackView = UIStackView(arrangedSubviews: [self.titleSourceIconView, self.titleCategoryIconView, self.titleLabel])
         self.titleStackView.spacing = 4
@@ -557,7 +559,16 @@ private extension BrowseViewController
         }
 
         if !isMinimuxerReady {
-            let toastView = ToastView(error: MinimuxerError.NoConnection)
+            let isPreviewMode = UserDefaults.standard.bool(forKey: "FluxStore.previewWithoutDevicePairing")
+            let toastView: ToastView
+            if isPreviewMode {
+                toastView = ToastView(
+                    text: NSLocalizedString("Preview mode is active", comment: ""),
+                    detailText: NSLocalizedString("Import a pairing file from Settings to install or refresh apps.", comment: "")
+                )
+            } else {
+                toastView = ToastView(error: MinimuxerError.NoConnection)
+            }
             toastView.show(in: self)
             return
         }

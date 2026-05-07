@@ -92,8 +92,11 @@ class AppCardCollectionViewCell: UICollectionViewCell
         
         super.init(frame: frame)
         
-        self.contentView.clipsToBounds = true
+        self.contentView.clipsToBounds = false
         self.contentView.layer.cornerCurve = .continuous
+        self.contentView.layer.cornerRadius = 22
+        self.contentView.layer.borderColor = UIColor.fluxCardBorder.cgColor
+        self.contentView.layer.borderWidth = 1
         
         self.contentView.addSubview(self.bannerView.backgroundEffectView, pinningEdgesWith: .zero)
         self.contentView.addSubview(self.stackView, pinningEdgesWith: .zero)
@@ -135,7 +138,10 @@ class AppCardCollectionViewCell: UICollectionViewCell
     {
         super.layoutSubviews()
         
-        self.contentView.layer.cornerRadius = self.bannerView.layer.cornerRadius
+        self.contentView.layer.shadowColor = UIColor.black.cgColor
+        self.contentView.layer.shadowOpacity = traitCollection.userInterfaceStyle == .dark ? 0.25 : 0.08
+        self.contentView.layer.shadowRadius = 12
+        self.contentView.layer.shadowOffset = CGSize(width: 0, height: 6)
     }
 }
 

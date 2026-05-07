@@ -347,10 +347,13 @@ private extension AppBannerView
     func update()
     {
         self.clipsToBounds = true
-        self.layer.cornerRadius = 22
+        self.layer.cornerRadius = 20
+        self.layer.cornerCurve = .continuous
+        self.layer.borderWidth = 1
+        self.layer.borderColor = UIColor.fluxCardBorder.cgColor
         
         let tintColor = self.originalTintColor ?? self.tintColor
-        self.subtitleLabel.textColor = tintColor
+        self.subtitleLabel.textColor = .fluxSecondaryText
         
         switch self.style
         {
@@ -364,8 +367,8 @@ private extension AppBannerView
             
             self.button.style = .pill
             
-            self.backgroundEffectView.contentView.backgroundColor = UIColor(resource: .blurTint)
-            self.backgroundEffectView.backgroundColor = tintColor
+            self.backgroundEffectView.contentView.backgroundColor = .fluxCardBackground
+            self.backgroundEffectView.backgroundColor = UIColor.clear
             
         case .source:
             self.directionalLayoutMargins.trailing = 20

@@ -43,11 +43,14 @@ final class InsetGroupTableViewCell: UITableViewCell
         self.selectionStyle = .none
         
         self.separatorView.translatesAutoresizingMaskIntoConstraints = false
-        self.separatorView.backgroundColor = UIColor.white.withAlphaComponent(0.25)
+        self.separatorView.backgroundColor = UIColor.fluxCardBorder
         self.addSubview(self.separatorView)
         
         self.insetView.layer.masksToBounds = true
-        self.insetView.layer.cornerRadius = 16
+        self.insetView.layer.cornerRadius = 18
+        self.insetView.layer.cornerCurve = .continuous
+        self.insetView.layer.borderWidth = 1
+        self.insetView.layer.borderColor = UIColor.fluxCardBorder.cgColor
         
         // Get the preferred background color from Interface Builder.
         self.insetView.backgroundColor = self.backgroundColor
@@ -122,11 +125,11 @@ private extension InsetGroupTableViewCell
         
         if self.isSelectable && (self.isHighlighted || self.isSelected)
         {
-            self.insetView.backgroundColor = UIColor.white.withAlphaComponent(0.55)
+            self.insetView.backgroundColor = UIColor.altPrimary.withAlphaComponent(0.16)
         }
         else
         {
-            self.insetView.backgroundColor = UIColor.white.withAlphaComponent(0.25)
+            self.insetView.backgroundColor = UIColor.fluxCardBackground
         }
     }
 }

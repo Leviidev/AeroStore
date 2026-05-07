@@ -208,16 +208,7 @@ final class SettingsViewController: UITableViewController
     {
         super.viewDidLoad()
         
-        // --- iOS 26 fix ---
-        if #available(iOS 26.0, *) {
-            let appearance = UINavigationBarAppearance()
-//            appearance.configureWithOpaqueBackground()  // or .defaultBackground if you want blur
-//            appearance.backgroundColor = UIColor(named: "SettingsBackground")
-            appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
-            appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
-            navigationController?.navigationBar.standardAppearance = appearance
-            navigationController?.navigationBar.scrollEdgeAppearance = appearance       // required for iOS 26, maybe enforce it in storyboard?
-        } 
+        self.configureFluxAppearance()
         let nib = UINib(nibName: "SettingsHeaderFooterView", bundle: nil)
         self.prototypeHeaderFooterView = nib.instantiate(withOwner: nil, options: nil)[0] as? SettingsHeaderFooterView
         
@@ -266,6 +257,34 @@ final class SettingsViewController: UITableViewController
         #if !targetEnvironment(simulator)
         detectAndImportAccountFile()
         #endif
+    }
+
+    private func configureFluxAppearance()
+    {
+        self.tableView.backgroundColor = .altBackground
+        self.tableView.separatorStyle = .none
+        if #available(iOS 15.0, *) {
+            self.tableView.sectionHeaderTopPadding = 12
+        }
+
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .altBackground
+        appearance.titleTextAttributes = [
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 17, weight: .semibold)
+        ]
+        appearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.label,
+            .font: UIFont.systemFont(ofSize: 32, weight: .bold)
+        ]
+        appearance.shadowColor = UIColor.fluxCardBorder
+        appearance.configureWithTintColor(.altPrimary)
+
+        self.navigationController?.navigationBar.tintColor = .altPrimary
+        self.navigationController?.navigationBar.standardAppearance = appearance
+        self.navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        self.navigationController?.navigationBar.compactAppearance = appearance
     }
     
     func importAccountAtFile(_ file: URL, remove: Bool = false) {

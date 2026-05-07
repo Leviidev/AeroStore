@@ -32,5 +32,11 @@ final class SettingsHeaderFooterView: UITableViewHeaderFooterView
                                      self.stackView.trailingAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.trailingAnchor),
                                      self.stackView.topAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.topAnchor),
                                      self.stackView.bottomAnchor.constraint(equalTo: self.contentView.layoutMarginsGuide.bottomAnchor)])
+
+        self.primaryLabel.font = .systemFont(ofSize: 18, weight: .semibold)
+        self.primaryLabel.textColor = .label
+        self.secondaryLabel.font = .systemFont(ofSize: 13, weight: .regular)
+        self.secondaryLabel.textColor = .fluxSecondaryText
+        self.button.tintColor = .altPrimary
     }
 }

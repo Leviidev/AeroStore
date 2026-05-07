@@ -295,7 +295,7 @@ extension LaunchViewController {
 
 // MARK: - SplashView
 final class SplashView: UIView {
-    let iconView = UIImageView()
+    let iconView = FluxLogoView()
     let titleLabel = UILabel()
 
     init(frame: CGRect, appName: String) {
@@ -316,8 +316,6 @@ final class SplashView: UIView {
         container.layer.shadowRadius = 8
         addSubview(container)
 
-        iconView.image = UIImage(named: "AppIcon") ?? UIImage(named: "AppIcon60x60") ?? UIImage(systemName: "app.fill")
-        iconView.contentMode = .scaleAspectFit
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.layer.cornerRadius = 24
         iconView.clipsToBounds = true
@@ -375,7 +373,10 @@ final class PairingFileManager {
     private func presentPairingFileAlert(on vc: UIViewController) {
         let alert = UIAlertController(
             title: NSLocalizedString("Pairing File", comment: ""),
-            message: NSLocalizedString("Import a pairing file to refresh and install apps on your device. You can skip for now to browse sources only.", comment: ""),
+            message: String(
+                format: NSLocalizedString("Import a pairing file to refresh and install apps in %@. You can skip for now to browse sources only.", comment: ""),
+                Bundle.main.altAppDisplayName
+            ),
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: NSLocalizedString("Help", comment: ""), style: .default) { _ in

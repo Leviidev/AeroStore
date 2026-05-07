@@ -16,20 +16,23 @@ class LargeIconCollectionViewCell: UICollectionViewCell
     override init(frame: CGRect)
     {
         self.textLabel.translatesAutoresizingMaskIntoConstraints = false
-        self.textLabel.textColor = .white
-        self.textLabel.font = .preferredFont(forTextStyle: .headline)
+        self.textLabel.textColor = .label
+        self.textLabel.font = .systemFont(ofSize: 20, weight: .bold)
         
         self.imageView.translatesAutoresizingMaskIntoConstraints = false
         self.imageView.contentMode = .center
-        self.imageView.tintColor = .white
-        self.imageView.alpha = 0.4
+        self.imageView.tintColor = .altPrimary
+        self.imageView.alpha = 0.30
         self.imageView.preferredSymbolConfiguration = .init(pointSize: 80)
         
         super.init(frame: frame)
         
         self.contentView.clipsToBounds = true
-        self.contentView.layer.cornerRadius = 16
+        self.contentView.layer.cornerRadius = 22
         self.contentView.layer.cornerCurve = .continuous
+        self.contentView.layer.borderColor = UIColor.fluxCardBorder.cgColor
+        self.contentView.layer.borderWidth = 1
+        self.contentView.backgroundColor = .fluxCardBackground
         
         self.contentView.addSubview(self.textLabel)
         self.contentView.addSubview(self.imageView)

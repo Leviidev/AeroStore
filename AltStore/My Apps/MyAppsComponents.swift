@@ -21,6 +21,10 @@ final class InstalledAppCollectionViewCell: UICollectionViewCell
         
         self.contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         self.contentView.preservesSuperviewLayoutMargins = true
+        self.contentView.layer.cornerRadius = 20
+        self.contentView.layer.cornerCurve = .continuous
+        self.contentView.layer.borderWidth = 1
+        self.contentView.layer.borderColor = UIColor.fluxCardBorder.cgColor
         
         let deactivateBadge = UIView()
         deactivateBadge.translatesAutoresizingMaskIntoConstraints = false
@@ -69,6 +73,12 @@ final class NoUpdatesCollectionViewCell: UICollectionViewCell
         super.awakeFromNib()
         
         self.contentView.preservesSuperviewLayoutMargins = true
+        self.contentView.layer.cornerRadius = 20
+        self.contentView.layer.cornerCurve = .continuous
+        self.contentView.layer.borderWidth = 1
+        self.contentView.layer.borderColor = UIColor.fluxCardBorder.cgColor
+        self.blurView.layer.cornerRadius = 20
+        self.blurView.clipsToBounds = true
         
         let font = self.textLabel.font ?? UIFont.systemFont(ofSize: 17)
         let configuration = UIImage.SymbolConfiguration(font: font)
