@@ -147,7 +147,7 @@ final class SettingsViewController: UITableViewController
     @IBOutlet private var recreateDatabaseSwitch: UISwitch!
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
+        return .default
     }
     
     private static var exportDBInProgress = false
@@ -1034,6 +1034,12 @@ extension SettingsViewController
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
+
+        // Enforce readable colors regardless of storyboard defaults.
+        cell.backgroundColor = .clear
+        cell.textLabel?.textColor = .label
+        cell.detailTextLabel?.textColor = .fluxSecondaryText
+        cell.tintColor = .altPrimary
         
         if #available(iOS 14, *) {}
         else if let cell = cell as? InsetGroupTableViewCell,

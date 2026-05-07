@@ -13,11 +13,8 @@ extension TabBarController
 {
     private enum Tab: Int, CaseIterable
     {
-        case news
-        case sources
-        case browse
         case myApps
-        case settings
+        case browse
     }
 }
 
@@ -26,8 +23,6 @@ final class TabBarController: UITabBarController
     private var initialSegue: (identifier: String, sender: Any?)?
     
     private var _viewDidAppear = false
-    
-    private var sourcesViewController: SourcesViewController!
     
     required init?(coder aDecoder: NSCoder)
     {
@@ -43,12 +38,20 @@ final class TabBarController: UITabBarController
     {
         super.viewDidLoad()
         self.configureTabBarAppearance()
-        
-        let browseNavigationController = self.viewControllers![Tab.browse.rawValue] as! UINavigationController
-        browseNavigationController.tabBarItem.image = UIImage(systemName: "bag")
-        
-        let sourcesNavigationController = self.viewControllers![Tab.sources.rawValue] as! UINavigationController
-        self.sourcesViewController = sourcesNavigationController.viewControllers.first as? SourcesViewController
+
+        // Phase 1: only show My Apps + Browse tabs.
+        // Storyboard still contains other tabs for later, but we remove them at runtime for now.
+        if let vcs = self.viewControllers, vcs.count >= 4 {
+            let browseNavigationController = vcs[2] as! UINavigationController
+            browseNavigationController.tabBarItem.title = NSLocalizedString("Browse", comment: "")
+            browseNavigationController.tabBarItem.image = UIImage(systemName: "sparkles")
+
+            let myAppsNavigationController = vcs[3] as! UINavigationController
+            myAppsNavigationController.tabBarItem.title = NSLocalizedString("My Apps", comment: "")
+            myAppsNavigationController.tabBarItem.image = UIImage(systemName: "square.grid.2x2")
+
+            self.viewControllers = [myAppsNavigationController, browseNavigationController]
+        }
     }
 
     private func configureTabBarAppearance()
@@ -102,21 +105,8 @@ extension TabBarController
 {
     @objc func presentSources(_ sender: Any)
     {
-        if let presentedViewController = self.presentedViewController
-        {
-            presentedViewController.dismiss(animated: true) {
-                self.presentSources(sender)
-            }
-            
-            return
-        }
-                
-        if let notification = (sender as? Notification), let sourceURL = notification.userInfo?[AppDelegate.addSourceDeepLinkURLKey] as? URL
-        {
-            self.sourcesViewController?.deepLinkSourceURL = sourceURL
-        }
-        
-        self.selectedIndex = Tab.sources.rawValue
+        // Sources tab removed for Phase 1; route deep links to Browse.
+        self.selectedIndex = Tab.browse.rawValue
     }
 }
 
@@ -129,11 +119,19 @@ private extension TabBarController
 
     @objc func openErrorLog(_ notification: Notification)
     {
-        self.selectedIndex = Tab.settings.rawValue
+        self.presentSettings()
     }
     
     @objc func exportFiles(_ notification: Notification)
     {
-        self.selectedIndex = Tab.settings.rawValue
+        self.presentSettings()
+    }
+
+    func presentSettings()
+    {
+        let settingsStoryboard = UIStoryboard(name: "Settings", bundle: nil)
+        guard let settingsRoot = settingsStoryboard.instantiateInitialViewController() else { return }
+        settingsRoot.modalPresentationStyle = .formSheet
+        self.present(settingsRoot, animated: true)
     }
 }

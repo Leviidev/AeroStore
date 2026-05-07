@@ -118,14 +118,25 @@ class MyAppsViewController: UICollectionViewController, PeekPopPreviewing
         
         NotificationCenter.default.addObserver(self, selector: #selector(MyAppsViewController.didChangeAppIcon(_:)), name: UIApplication.didChangeAppIconNotification, object: nil)
 
+        let settingsButton = UIBarButtonItem(image: UIImage(systemName: "gearshape"), style: .plain, target: self, action: #selector(MyAppsViewController.presentSettings(_:)))
+        settingsButton.accessibilityLabel = NSLocalizedString("Settings", comment: "")
+
         let jitButton = UIBarButtonItem(image: UIImage(systemName: "bolt.fill"), style: .plain, target: self, action: #selector(MyAppsViewController.presentFluxJIT(_:)))
         jitButton.accessibilityLabel = "JIT"
         if var items = navigationItem.rightBarButtonItems {
+            items.append(settingsButton)
             items.append(jitButton)
             navigationItem.rightBarButtonItems = items
         } else {
-            navigationItem.rightBarButtonItems = [jitButton]
+            navigationItem.rightBarButtonItems = [settingsButton, jitButton]
         }
+    }
+
+    @objc private func presentSettings(_ sender: Any?) {
+        let settingsStoryboard = UIStoryboard(name: "Settings", bundle: nil)
+        guard let settingsRoot = settingsStoryboard.instantiateInitialViewController() else { return }
+        settingsRoot.modalPresentationStyle = .formSheet
+        present(settingsRoot, animated: true)
     }
 
     @objc private func presentFluxJIT(_ sender: Any?) {
