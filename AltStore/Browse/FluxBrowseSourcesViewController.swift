@@ -152,7 +152,7 @@ final class FluxBrowseSourcesViewController: UITableViewController, NSFetchedRes
     private func pushBrowseApps(for source: Source) {
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         let browse = storyboard.instantiateViewController(identifier: "browseViewController") { coder in
-            BrowseViewController(source: source, coder: coder)!
+            BrowseViewController(source: source, coder: coder)
         }
         navigationController?.pushViewController(browse, animated: true)
     }
@@ -187,8 +187,6 @@ final class FluxBrowseSourcesViewController: UITableViewController, NSFetchedRes
         var bg = UIBackgroundConfiguration.listGroupedCell()
         bg.backgroundColor = UIColor.fluxCardBackground
         bg.cornerRadius = 16
-        bg.strokeColor = UIColor.fluxCardBorder
-        bg.strokeWidth = 1
         cell.backgroundConfiguration = bg
 
         switch Section(rawValue: indexPath.section)! {
