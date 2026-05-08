@@ -59,7 +59,7 @@ enum FluxBundledCatalogImporter {
     private static func loadBundledCatalogEntries() -> [CatalogEntry] {
         guard let url = Bundle.main.url(forResource: "trustedapps", withExtension: "json"),
               let data = try? Data(contentsOf: url),
-              let decoded = try? JSONDecoder().decode(TrustedAppsPayload.self, from: data)
+              let decoded = try? Foundation.JSONDecoder().decode(TrustedAppsPayload.self, from: data)
         else {
             return []
         }
