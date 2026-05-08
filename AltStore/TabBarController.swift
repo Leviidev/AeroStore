@@ -62,12 +62,12 @@ final class TabBarController: UITabBarController
                 sheet.navigationBar.prefersLargeTitles = false
                 nav.present(sheet, animated: true)
             }
-            featured.navigationItem.rightBarButtonItem = UIBarButtonItem(
-                image: UIImage(systemName: "plus.circle.fill"),
-                style: .plain,
-                primaryAction: addCatalogAction
-            )
-            featured.navigationItem.rightBarButtonItem?.accessibilityLabel = NSLocalizedString("Add catalog", comment: "")
+            // Avoid UIBarButtonItem initializers whose signatures differ across Xcode/iOS SDKs.
+            let addHost = UIButton(type: .system)
+            addHost.setImage(UIImage(systemName: "plus.circle.fill"), for: .normal)
+            addHost.addAction(addCatalogAction, for: .touchUpInside)
+            addHost.accessibilityLabel = NSLocalizedString("Add catalog", comment: "")
+            featured.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: addHost)
 
             browseNavigationController.setViewControllers([featured], animated: false)
 
