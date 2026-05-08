@@ -184,7 +184,7 @@ final class FluxAddCatalogViewController: UIViewController {
         view.endEditing(true)
 
         guard let raw = urlField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty else {
-            presentAlert(title: NSLocalizedString("URL needed", comment: ""), message: NSLocalizedString("Enter a catalog URL to continue.", comment: ""))
+            presentSimpleAlert(title: NSLocalizedString("URL needed", comment: ""), message: NSLocalizedString("Enter a catalog URL to continue.", comment: ""))
             return
         }
 
@@ -194,7 +194,7 @@ final class FluxAddCatalogViewController: UIViewController {
         }
 
         guard let url = urlToTry else {
-            presentAlert(title: NSLocalizedString("Invalid URL", comment: ""), message: NSLocalizedString("FluxStore couldn’t parse that address.", comment: ""))
+            presentSimpleAlert(title: NSLocalizedString("Invalid URL", comment: ""), message: NSLocalizedString("FluxStore couldn’t parse that address.", comment: ""))
             return
         }
 
@@ -214,7 +214,7 @@ final class FluxAddCatalogViewController: UIViewController {
                     await MainActor.run {
                         self.activity.stopAnimating()
                         self.previewButton.isEnabled = true
-                        self.presentAlert(
+                        self.presentSimpleAlert(
                             title: NSLocalizedString("Can’t load catalog", comment: ""),
                             message: NSLocalizedString("The preview could not be prepared. Try again.", comment: "")
                         )
@@ -251,7 +251,7 @@ final class FluxAddCatalogViewController: UIViewController {
                 await MainActor.run {
                     self.activity.stopAnimating()
                     self.previewButton.isEnabled = true
-                    self.presentAlert(title: NSLocalizedString("Can’t load catalog", comment: ""), message: error.localizedDescription)
+                    self.presentSimpleAlert(title: NSLocalizedString("Can’t load catalog", comment: ""), message: error.localizedDescription)
                 }
             }
         }
@@ -272,12 +272,13 @@ final class FluxAddCatalogViewController: UIViewController {
                 self.dismiss(animated: true)
             } catch is CancellationError {
             } catch {
-                self.presentAlert(title: NSLocalizedString("Unable to add catalog", comment: ""), message: error.localizedDescription)
+                self.presentSimpleAlert(title: NSLocalizedString("Unable to add catalog", comment: ""), message: error.localizedDescription)
             }
         }
     }
 
-    private func presentAlert(title: String, message: String) {
+    /// Sync alert only — avoids colliding with `UIViewController.presentAlert` (async) in AltStoreCore.
+    private func presentSimpleAlert(title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
         present(alert, animated: true)
