@@ -49,6 +49,19 @@ final class FluxAddCatalogViewController: UIViewController {
         stack.spacing = 18
         stack.translatesAutoresizingMaskIntoConstraints = false
 
+        let logoHeader = UIStackView()
+        logoHeader.axis = .vertical
+        logoHeader.alignment = .center
+        logoHeader.spacing = 0
+
+        let logo = FluxLogoView()
+        logo.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            logo.widthAnchor.constraint(equalToConstant: 72),
+            logo.heightAnchor.constraint(equalToConstant: 72),
+        ])
+        logoHeader.addArrangedSubview(logo)
+
         let intro = UILabel()
         intro.translatesAutoresizingMaskIntoConstraints = false
         intro.text = NSLocalizedString("Paste an AltStore-compatible catalog URL. FluxStore shows a live preview—nothing is saved until you confirm.", comment: "")
@@ -137,6 +150,7 @@ final class FluxAddCatalogViewController: UIViewController {
         previewContainer.addArrangedSubview(previewTitle)
         previewContainer.addArrangedSubview(previewSubtitle)
 
+        stack.addArrangedSubview(logoHeader)
         stack.addArrangedSubview(intro)
         stack.addArrangedSubview(fieldRow)
         stack.addArrangedSubview(previewButton)

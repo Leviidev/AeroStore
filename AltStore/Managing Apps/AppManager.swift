@@ -384,27 +384,25 @@ extension AppManager
             persistedSource.identifier
         }
 
-        let viewSourceForNotification: Source? = await MainActor.run {
+        // Always post on the main queue: NotificationCenter delivers synchronously to observers,
+        // and UI / viewContext work must not run from a Swift task thread (e.g. pool thread 14).
+        await MainActor.run {
             let ctx = DatabaseManager.shared.viewContext
-            func fetchInViewContext() -> Source? {
-                var found: Source?
-                ctx.performAndWait {
-                    let request = Source.fetchRequest() as NSFetchRequest<Source>
-                    request.fetchLimit = 1
-                    request.predicate = NSPredicate(format: "%K == %@", #keyPath(Source.identifier), addedSourceID)
-                    request.returnsObjectsAsFaults = false
-                    found = try? ctx.fetch(request).first
+            var resolved: Source?
+            ctx.performAndWait {
+                ctx.processPendingChanges()
+                let request = Source.fetchRequest() as NSFetchRequest<Source>
+                request.fetchLimit = 1
+                request.predicate = NSPredicate(format: "%K == %@", #keyPath(Source.identifier), addedSourceID)
+                request.returnsObjectsAsFaults = false
+                resolved = try? ctx.fetch(request).first
+                if resolved == nil {
+                    ctx.refreshAllObjects()
+                    resolved = try? ctx.fetch(request).first
                 }
-                return found
             }
-
-            ctx.performAndWait { ctx.processPendingChanges() }
-            if let s = fetchInViewContext() { return s }
-            ctx.performAndWait { ctx.refreshAllObjects() }
-            return fetchInViewContext()
+            NotificationCenter.default.post(name: AppManager.didAddSourceNotification, object: resolved)
         }
-
-        NotificationCenter.default.post(name: AppManager.didAddSourceNotification, object: viewSourceForNotification)
     }
     
     func remove(@AsyncManaged _ source: Source, presentingViewController: UIViewController) async throws
