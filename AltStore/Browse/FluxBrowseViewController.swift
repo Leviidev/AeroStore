@@ -81,7 +81,7 @@ final class FluxBrowseViewController: UITableViewController, NSFetchedResultsCon
             content.bottomAnchor.constraint(equalTo: host.bottomAnchor),
             content.leadingAnchor.constraint(equalTo: host.leadingAnchor),
             content.trailingAnchor.constraint(equalTo: host.trailingAnchor),
-            content.widthAnchor.constraint(equalTo: tableView.widthAnchor),
+            content.widthAnchor.constraint(equalTo: host.widthAnchor),
         ])
 
         let logo = FluxLogoView()
