@@ -16,6 +16,7 @@ final class FluxBrowseCatalogCell: UITableViewCell {
     private let cardView = UIView()
     private let iconContainer = UIView()
     let iconView = UIImageView()
+    private var iconImageTask: ImageTask?
     let titleLabel = UILabel()
     let subtitleLabel = UILabel()
     private let metaLabel = UILabel()
@@ -135,7 +136,8 @@ final class FluxBrowseCatalogCell: UITableViewCell {
 
     /// Loads remote artwork for owned catalogs; picks use a Flux-forward glyph tile.
     func applyVisuals(mode: FluxBrowseCatalogCellMode, artworkURL: URL?, pickGlyph: String = "sparkles.rectangle.stack") {
-        ImagePipeline.shared.cancel(for: iconView)
+        iconImageTask?.cancel()
+        iconImageTask = nil
 
         switch mode {
         case .ownedChevron:
@@ -143,7 +145,7 @@ final class FluxBrowseCatalogCell: UITableViewCell {
                 iconContainer.backgroundColor = .white
                 iconView.image = nil
                 iconView.tintColor = nil
-                Nuke.loadImage(with: artworkURL, into: iconView) { [weak self] result in
+                iconImageTask = Nuke.loadImage(with: artworkURL, into: iconView) { [weak self] result in
                     guard let self else { return }
                     if case .failure = result {
                         self.applyOwnedFallbackGlyph()
@@ -168,7 +170,8 @@ final class FluxBrowseCatalogCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        ImagePipeline.shared.cancel(for: iconView)
+        iconImageTask?.cancel()
+        iconImageTask = nil
         iconView.image = nil
         iconView.tintColor = .altPrimary
         iconContainer.backgroundColor = UIColor.altPrimary.withAlphaComponent(0.12)
