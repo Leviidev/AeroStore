@@ -1,0 +1,120 @@
+# Same as get-ipa.yml but merges Build.SideStoreBundleID.xcconfig so PRODUCT_BUNDLE_IDENTIFIER matches SideStore
+# (com.SideStore.SideStore). Use when you need to replace an existing SideStore install and Screen Time blocks deleting apps.
+name: Get IPA (unsigned, SideStore bundle ID)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: get-ipa-sidestore-bundle-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ipa:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Sync submodules and ensure native Dependencies checkouts
+        run: bash scripts/ci/ensure_fluxstore_dependencies.sh
+
+      - name: SwiftPM — GitHub token (fewer clone/rate-limit issues)
+        run: git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
+      - uses: maxim-lobanov/setup-xcode@v1.6.0
+        with:
+          xcode-version: "26.4"
+
+      - name: Find Xcode project
+        id: proj
+        run: |
+          set -euo pipefail
+          for d in . proj/FluxStore FluxStore; do
+            if [[ -f "$d/AltStore.xcodeproj/project.pbxproj" ]]; then
+              echo "dir=$d" >> "$GITHUB_OUTPUT"
+              echo "Project: $d/AltStore.xcodeproj"
+              exit 0
+            fi
+          done
+          echo "::error::AltStore.xcodeproj not found"; exit 1
+
+      - name: Patch AltSign SPM manifest (SwiftPM / Xcode 26)
+        run: python3 scripts/ci/patch_altsign_package_swift.py
+
+      - name: Resolve packages
+        run: |
+          set -euo pipefail
+          P="${{ steps.proj.outputs.dir }}"
+          ROOT="${GITHUB_WORKSPACE:?}"
+          PROJ="${ROOT%/}/${P#./}/AltStore.xcodeproj"
+          DD="${ROOT}/build/ci-DerivedData"
+          SP="${ROOT}/build/ci-SourcePackages"
+          rm -rf "$DD" "$SP"
+          mkdir -p "$DD" "$SP" "${ROOT}/build"
+          xcodebuild -resolvePackageDependencies \
+            -project "$PROJ" \
+            -scheme SideStore \
+            -derivedDataPath "$DD" \
+            -clonedSourcePackagesDirPath "$SP"
+
+      - name: Fetch em_proxy prebuilt binaries
+        run: bash scripts/ci/fetch_em_proxy_prebuilt.sh
+
+      - name: Archive (unsigned, SideStore bundle ID)
+        run: |
+          set -euo pipefail
+          P="${{ steps.proj.outputs.dir }}"
+          ROOT="${GITHUB_WORKSPACE:?}"
+          PROJ="${ROOT%/}/${P#./}/AltStore.xcodeproj"
+          DD="${ROOT}/build/ci-DerivedData"
+          SP="${ROOT}/build/ci-SourcePackages"
+          XCCONFIG="${ROOT}/Build.SideStoreBundleID.xcconfig"
+          test -f "$XCCONFIG"
+          mkdir -p "${ROOT}/build"
+          LOG="${ROOT}/build/xcode-archive.log"
+          set +e
+          xcodebuild archive \
+            -xcconfig "$XCCONFIG" \
+            -project "$PROJ" \
+            -scheme SideStore \
+            -configuration Debug \
+            -archivePath "${ROOT}/build/App.xcarchive" \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$DD" \
+            -clonedSourcePackagesDirPath "$SP" \
+            ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            SWIFT_OPTIMIZATION_LEVEL="-Onone" \
+            2>&1 | tee "$LOG"
+          XC="${PIPESTATUS[0]}"
+          set -e
+          if [[ "$XC" -ne 0 ]]; then
+            echo "::error::xcodebuild archive failed (exit $XC). First compiler/driver errors:"
+            grep -E " error: |fatal error:" "$LOG" | head -120 || true
+            exit "$XC"
+          fi
+
+      - name: Make IPA zip
+        run: |
+          set -euo pipefail
+          ROOT="${GITHUB_WORKSPACE:?}"
+          APP="$(find "${ROOT}/build/App.xcarchive/Products/Applications" -maxdepth 1 -name "*.app" -print -quit)"
+          test -n "$APP" && test -d "$APP"
+          rm -rf "${ROOT}/build/Payload" "${ROOT}/build/App.ipa"
+          mkdir -p "${ROOT}/build/Payload"
+          cp -R "$APP" "${ROOT}/build/Payload/"
+          (cd "${ROOT}/build" && zip -qr App.ipa Payload)
+          rm -rf "${ROOT}/build/Payload"
+          ls -lh "${ROOT}/build/App.ipa"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ipa-unsigned-sidestore-bundle
+          path: build/App.ipa
+          retention-days: 30

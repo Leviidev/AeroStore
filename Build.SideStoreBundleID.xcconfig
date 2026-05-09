@@ -1,0 +1,9 @@
+// Merge this with `xcodebuild -xcconfig Build.SideStoreBundleID.xcconfig` (see get-ipa-sidestore-bundle.yml).
+// Uses SideStore’s bundle ID so you can install over an existing SideStore when Screen Time blocks deleting apps.
+// Does not include Build.xcconfig — the target already loads it; these keys override the Flux defaults.
+
+PRODUCT_BUNDLE_IDENTIFIER[config=Debug] = com.SideStore.SideStore.$(DEVELOPMENT_TEAM)
+PRODUCT_BUNDLE_IDENTIFIER[config=Release] = com.SideStore.SideStore
+
+GROUP_ID = com.SideStore.SideStore
+GROUP_ID[config=Debug] = com.SideStore.SideStore.$(DEVELOPMENT_TEAM)
