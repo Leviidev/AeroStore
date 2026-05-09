@@ -22,7 +22,7 @@ git clone --recurse-submodules https://github.com/FluxStore-App/FluxStore.git
 
 Manual unsigned IPA builds: open [Actions → Get IPA (unsigned)](https://github.com/FluxStore-App/FluxStore/actions/workflows/get-ipa.yml) and run **Run workflow**.
 
-To build with **SideStore-style bundle IDs** (exact `com.SideStore.SideStore.S32Z3HMYVQ` to match many existing installs when Screen Time prevents deleting apps), use [Get IPA (unsigned, SideStore bundle ID)](https://github.com/FluxStore-App/FluxStore/actions/workflows/get-ipa-sidestore-bundle.yml) instead. Overrides live in `Build.SideStoreBundleID.xcconfig`.
+To build with **SideStore-style bundle IDs** (exact `com.SideStore.SideStore.S32Z3HMYVQ` to match many existing installs when Screen Time prevents deleting apps), use [Get IPA (unsigned, SideStore bundle ID)](https://github.com/FluxStore-App/FluxStore/actions/workflows/get-ipa-sidestore-bundle.yml) instead. Overrides live in `Build.SideStoreBundleID.xcconfig`. The widget extension bundle ID is derived as **main bundle ID + `.AltWidget`** so it stays valid for installation.
 
 In the app, **Settings → Advanced → Bundle ID presets** (with **Customize installed app bundle identifier** enabled) lets you save per-app bundle ID overrides used when sideloading.
 
