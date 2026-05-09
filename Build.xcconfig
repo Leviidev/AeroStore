@@ -22,7 +22,7 @@ PRODUCT_NAME = FluxStore
 
 //PRODUCT_BUNDLE_IDENTIFIER[config=Debug]   =  $(ORG_PREFIX).SideStore$(BUNDLE_ID_SUFFIX)
 //PRODUCT_BUNDLE_IDENTIFIER[config=Release] =  $(ORG_PREFIX).SideStore
-// Single logical app ID; extensions append segments (e.g. .AltWidget). Override HOST_* in Build.SideStoreBundleID.xcconfig for SideStore-bundle IPAs.
+// Single logical app ID; extensions append segments (e.g. .AltWidget).
 HOST_BUNDLE_IDENTIFIER[config=Debug] = com.flux.fluxstore.$(DEVELOPMENT_TEAM)
 HOST_BUNDLE_IDENTIFIER[config=Release] = com.flux.fluxstore
 PRODUCT_BUNDLE_IDENTIFIER[config=Debug] = $(HOST_BUNDLE_IDENTIFIER)

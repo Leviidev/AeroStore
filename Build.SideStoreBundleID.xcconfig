@@ -1,9 +1,0 @@
-// Merge this with `xcodebuild -xcconfig Build.SideStoreBundleID.xcconfig` (see get-ipa-sidestore-bundle.yml).
-// Override HOST_BUNDLE_IDENTIFIER so app + embedded extensions (e.g. AltWidget) get a consistent prefix after xcconfig merge.
-// `PRODUCT_BUNDLE_IDENTIFIER` stays `$(HOST_BUNDLE_IDENTIFIER)` in Build.xcconfig; never hardcode widget IDs here.
-
-HOST_BUNDLE_IDENTIFIER[config=Debug] = com.SideStore.SideStore.S32Z3HMYVQ
-HOST_BUNDLE_IDENTIFIER[config=Release] = com.SideStore.SideStore.S32Z3HMYVQ
-
-GROUP_ID = com.SideStore.SideStore.S32Z3HMYVQ
-GROUP_ID[config=Debug] = com.SideStore.SideStore.S32Z3HMYVQ

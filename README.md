@@ -22,8 +22,6 @@ git clone --recurse-submodules https://github.com/FluxStore-App/FluxStore.git
 
 Manual unsigned IPA builds: open [Actions → Get IPA (unsigned)](https://github.com/FluxStore-App/FluxStore/actions/workflows/get-ipa.yml) and run **Run workflow**.
 
-To build with **SideStore-style bundle IDs** (exact `com.SideStore.SideStore.S32Z3HMYVQ` to match many existing installs when Screen Time prevents deleting apps), use [Get IPA (unsigned, SideStore bundle ID)](https://github.com/FluxStore-App/FluxStore/actions/workflows/get-ipa-sidestore-bundle.yml) instead. Overrides live in `Build.SideStoreBundleID.xcconfig`. The widget extension uses **`$(HOST_BUNDLE_IDENTIFIER).AltWidget`**; `Build.SideStoreBundleID.xcconfig` overrides **`HOST_BUNDLE_IDENTIFIER`** (not the widget line directly) so the extension stays a true child of the main app after `xcodebuild -xcconfig` merge.
-
 In the app, **Settings → Advanced → Bundle ID presets** (with **Customize installed app bundle identifier** enabled) lets you save per-app bundle ID overrides used when sideloading.
 
 Like SideStore, FluxStore is an iOS application that lets you sideload apps using your Apple ID. It resigns apps with your personal development certificate and uses a [specially designed VPN](https://github.com/jkcoxson/em_proxy) so iOS can install them. Background refresh helps keep the usual 7-day development provisioning window from expiring unexpectedly.
