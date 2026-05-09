@@ -1,5 +1,5 @@
 #include "../Build.xcconfig"
 
-// Must be prefixed by the host app bundle ID (e.g. SideStore-bundle IPA merges Build.SideStoreBundleID.xcconfig).
-PRODUCT_BUNDLE_IDENTIFIER[config=Debug] = $(PRODUCT_BUNDLE_IDENTIFIER).AltWidget
-PRODUCT_BUNDLE_IDENTIFIER[config=Release] = $(PRODUCT_BUNDLE_IDENTIFIER).AltWidget
+// Use HOST_BUNDLE_IDENTIFIER (not PRODUCT_BUNDLE_IDENTIFIER): the latter can be folded too early relative to -xcconfig merge, breaking SideStore-bundle builds.
+PRODUCT_BUNDLE_IDENTIFIER[config=Debug] = $(HOST_BUNDLE_IDENTIFIER).AltWidget
+PRODUCT_BUNDLE_IDENTIFIER[config=Release] = $(HOST_BUNDLE_IDENTIFIER).AltWidget
