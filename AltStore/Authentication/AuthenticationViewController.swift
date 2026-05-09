@@ -53,6 +53,8 @@ final class AuthenticationViewController: UIViewController
             view.layer.cornerRadius = 16
         }
 
+        self.applyFluxAuthenticationChrome()
+
         if UIScreen.main.isExtraCompactHeight
         {
             self.contentStackView.spacing = 20
@@ -62,6 +64,12 @@ final class AuthenticationViewController: UIViewController
         NotificationCenter.default.addObserver(self, selector: #selector(AuthenticationViewController.textFieldDidChangeText(_:)), name: UITextField.textDidChangeNotification, object: self.passwordTextField)
         
         self.update()
+    }
+
+    override func viewWillAppear(_ animated: Bool)
+    {
+        super.viewWillAppear(animated)
+        self.styleNavigationBarForFlux()
     }
     
     override func viewDidDisappear(_ animated: Bool)
@@ -75,6 +83,91 @@ final class AuthenticationViewController: UIViewController
 
 private extension AuthenticationViewController
 {
+    func styleNavigationBarForFlux()
+    {
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = .altBackground
+        appearance.shadowColor = UIColor.fluxCardBorder
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.label]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.label]
+
+        self.navigationController?.navigationBar.tintColor = .altPrimary
+        self.navigationController?.navigationBar.standardAppearance = appearance
+        self.navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        self.navigationController?.navigationBar.compactAppearance = appearance
+    }
+
+    func applyFluxAuthenticationChrome()
+    {
+        self.view.backgroundColor = .altBackground
+        self.scrollView.backgroundColor = .altBackground
+        self.scrollView.indicatorStyle = .default
+
+        self.appleIDBackgroundView?.backgroundColor = .fluxCardBackground
+        self.appleIDBackgroundView?.layer.borderWidth = 1
+        self.appleIDBackgroundView?.layer.borderColor = UIColor.fluxCardBorder.cgColor
+
+        self.passwordBackgroundView?.backgroundColor = .fluxCardBackground
+        self.passwordBackgroundView?.layer.borderWidth = 1
+        self.passwordBackgroundView?.layer.borderColor = UIColor.fluxCardBorder.cgColor
+
+        self.appleIDTextField?.textColor = .label
+        self.appleIDTextField?.tintColor = .altPrimary
+        self.appleIDTextField?.keyboardAppearance = .default
+        if let ph = self.appleIDTextField?.placeholder
+        {
+            self.appleIDTextField?.attributedPlaceholder = NSAttributedString(
+                string: ph,
+                attributes: [.foregroundColor: UIColor.fluxSecondaryText]
+            )
+        }
+
+        self.passwordTextField?.textColor = .label
+        self.passwordTextField?.tintColor = .altPrimary
+        self.passwordTextField?.keyboardAppearance = .default
+        if let ph = self.passwordTextField?.placeholder
+        {
+            self.passwordTextField?.attributedPlaceholder = NSAttributedString(
+                string: ph,
+                attributes: [.foregroundColor: UIColor.fluxSecondaryText]
+            )
+        }
+
+        self.signInButton?.backgroundColor = .altPrimary
+        self.signInButton?.setTitleColor(.white, for: .normal)
+        self.signInButton?.setTitleColor(UIColor.white.withAlphaComponent(0.55), for: .disabled)
+        self.signInButton.activityIndicatorView.color = .white
+
+        self.applyFluxLabels(inSubtreeOf: self.scrollView)
+    }
+
+    func applyFluxLabels(inSubtreeOf root: UIView)
+    {
+        for subview in root.subviews
+        {
+            if let label = subview as? UILabel
+            {
+                if label.font.pointSize >= 28
+                {
+                    label.textColor = .label
+                }
+                else if label.font.fontDescriptor.symbolicTraits.contains(.traitBold), label.font.pointSize >= 17
+                {
+                    label.textColor = .label
+                }
+                else
+                {
+                    label.textColor = .fluxSecondaryText
+                }
+            }
+            else
+            {
+                self.applyFluxLabels(inSubtreeOf: subview)
+            }
+        }
+    }
+
     func update()
     {
         if let _ = self.validate()

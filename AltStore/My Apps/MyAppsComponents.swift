@@ -89,6 +89,80 @@ final class NoUpdatesCollectionViewCell: UICollectionViewCell
     }
 }
 
+final class FluxStoreSelfUpdateCell: UICollectionViewCell
+{
+    private let cardView = UIView()
+    private let titleLabel = UILabel()
+    private let subtitleLabel = UILabel()
+    private let iconView = UIImageView()
+
+    override init(frame: CGRect)
+    {
+        super.init(frame: frame)
+
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+        cardView.backgroundColor = .fluxCardBackground
+        cardView.layer.cornerRadius = 20
+        cardView.layer.cornerCurve = .continuous
+        cardView.layer.borderWidth = 1
+        cardView.layer.borderColor = UIColor.fluxCardBorder.cgColor
+
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        iconView.image = UIImage(systemName: "arrow.down.circle.fill")
+        iconView.tintColor = .altPrimary
+        iconView.contentMode = .scaleAspectFit
+
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.font = .preferredFont(forTextStyle: .headline)
+        titleLabel.textColor = .label
+        titleLabel.numberOfLines = 2
+
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        subtitleLabel.font = .preferredFont(forTextStyle: .subheadline)
+        subtitleLabel.textColor = .fluxSecondaryText
+        subtitleLabel.numberOfLines = 2
+
+        contentView.addSubview(cardView)
+        cardView.addSubview(iconView)
+        cardView.addSubview(titleLabel)
+        cardView.addSubview(subtitleLabel)
+
+        NSLayoutConstraint.activate([
+            cardView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 15),
+            cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+            cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+
+            iconView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
+            iconView.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 36),
+            iconView.heightAnchor.constraint(equalToConstant: 36),
+
+            titleLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: 12),
+            titleLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -14),
+            titleLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 14),
+
+            subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            subtitleLabel.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
+            subtitleLabel.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -14),
+        ])
+
+        contentView.preservesSuperviewLayoutMargins = true
+    }
+
+    required init?(coder: NSCoder)
+    {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func configure(with info: FluxStoreGitHubRelease.UpdateInfo)
+    {
+        titleLabel.text = String(format: NSLocalizedString("FluxStore %@ is available", comment: ""), info.versionString)
+        subtitleLabel.text = NSLocalizedString("Tap to download the latest IPA from GitHub", comment: "")
+    }
+}
+
 final class UpdatesCollectionHeaderView: UICollectionReusableView
 {
     let button = PillButton(type: .system)

@@ -641,7 +641,9 @@ private extension SettingsViewController
     
     private func preferredHeight(for settingsHeaderFooterView: SettingsHeaderFooterView, in section: Section, isHeader: Bool) -> CGFloat
     {
-        let widthConstraint = settingsHeaderFooterView.contentView.widthAnchor.constraint(equalToConstant: tableView.bounds.width)
+        // LiveContainer / early layout can report 0 width while scrolling; that breaks Auto Layout and can crash.
+        let layoutWidth = max(tableView.bounds.width, tableView.frame.width, view.bounds.width, UIScreen.main.bounds.width, 320)
+        let widthConstraint = settingsHeaderFooterView.contentView.widthAnchor.constraint(equalToConstant: layoutWidth)
         NSLayoutConstraint.activate([widthConstraint])
         defer { NSLayoutConstraint.deactivate([widthConstraint]) }
         
@@ -1151,6 +1153,16 @@ extension SettingsViewController
             
         case .account, .credits, .advancedSettings, .instructions: return 0.0
         }
+    }
+
+    override func tableView(_ tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat
+    {
+        44
+    }
+
+    override func tableView(_ tableView: UITableView, estimatedHeightForFooterInSection section: Int) -> CGFloat
+    {
+        24
     }
 }
 

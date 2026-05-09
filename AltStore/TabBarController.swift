@@ -11,10 +11,11 @@ import AltStoreCore
 
 extension TabBarController
 {
-    private enum Tab: Int, CaseIterable
+    enum Tab: Int, CaseIterable
     {
-        case myApps
+        case home
         case browse
+        case myApps
     }
 }
 
@@ -50,6 +51,12 @@ final class TabBarController: UITabBarController
             myAppsNavigationController.tabBarItem.title = NSLocalizedString("My Apps", comment: "")
             myAppsNavigationController.tabBarItem.image = UIImage(systemName: "square.grid.2x2")
 
+            let homeRoot = FluxHomeViewController()
+            let homeNavigationController = UINavigationController(rootViewController: homeRoot)
+            homeNavigationController.tabBarItem.title = NSLocalizedString("Home", comment: "")
+            homeNavigationController.tabBarItem.image = UIImage(systemName: "house.fill")
+            homeNavigationController.navigationBar.prefersLargeTitles = true
+
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             let featured = storyboard.instantiateViewController(withIdentifier: "featuredViewController") as! FeaturedViewController
             featured.navigationItem.largeTitleDisplayMode = .always
@@ -71,7 +78,7 @@ final class TabBarController: UITabBarController
 
             browseNavigationController.setViewControllers([featured], animated: false)
 
-            self.viewControllers = [myAppsNavigationController, browseNavigationController]
+            self.viewControllers = [homeNavigationController, browseNavigationController, myAppsNavigationController]
         }
     }
 
