@@ -13,7 +13,6 @@ extension TabBarController
 {
     enum Tab: Int, CaseIterable
     {
-        case home
         case browse
         case myApps
         case settings
@@ -25,6 +24,9 @@ final class TabBarController: UITabBarController
     private var initialSegue: (identifier: String, sender: Any?)?
     
     private var _viewDidAppear = false
+
+    private let floatingTabBarBackgroundView = UIVisualEffectView(effect: UIBlurEffect(style: .systemChromeMaterial))
+    private var floatingTabBarBackgroundConstraints: [NSLayoutConstraint] = []
     
     required init?(coder aDecoder: NSCoder)
     {
@@ -41,8 +43,7 @@ final class TabBarController: UITabBarController
         super.viewDidLoad()
         self.configureTabBarAppearance()
 
-        // Phase 1: only show My Apps + Browse tabs.
-        // Storyboard still contains other tabs for later, but we remove them at runtime for now.
+        // Keep only the 3 primary tabs (Browse, My Apps, Settings).
         if let vcs = self.viewControllers, vcs.count >= 4 {
             let browseNavigationController = vcs[2] as! UINavigationController
             browseNavigationController.tabBarItem.title = NSLocalizedString("Browse", comment: "")
@@ -51,12 +52,6 @@ final class TabBarController: UITabBarController
             let myAppsNavigationController = vcs[3] as! UINavigationController
             myAppsNavigationController.tabBarItem.title = NSLocalizedString("My Apps", comment: "")
             myAppsNavigationController.tabBarItem.image = UIImage(systemName: "square.grid.2x2")
-
-            let homeRoot = FluxHomeViewController()
-            let homeNavigationController = UINavigationController(rootViewController: homeRoot)
-            homeNavigationController.tabBarItem.title = NSLocalizedString("Home", comment: "")
-            homeNavigationController.tabBarItem.image = UIImage(systemName: "house.fill")
-            homeNavigationController.navigationBar.prefersLargeTitles = true
 
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             let featured = storyboard.instantiateViewController(withIdentifier: "featuredViewController") as! FeaturedViewController
@@ -87,7 +82,6 @@ final class TabBarController: UITabBarController
             settingsNavigationController.tabBarItem.image = UIImage(systemName: "gearshape.fill")
 
             self.viewControllers = [
-                homeNavigationController,
                 browseNavigationController,
                 myAppsNavigationController,
                 settingsNavigationController,
@@ -98,9 +92,9 @@ final class TabBarController: UITabBarController
     private func configureTabBarAppearance()
     {
         let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .altBackground
-        appearance.shadowColor = UIColor.fluxCardBorder
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundColor = .clear
+        appearance.shadowColor = .clear
         appearance.stackedLayoutAppearance.normal.iconColor = UIColor.fluxSecondaryText
         appearance.stackedLayoutAppearance.normal.titleTextAttributes = [
             .foregroundColor: UIColor.fluxSecondaryText,
@@ -116,6 +110,53 @@ final class TabBarController: UITabBarController
         self.tabBar.scrollEdgeAppearance = appearance
         self.tabBar.tintColor = .altPrimary
         self.tabBar.unselectedItemTintColor = .fluxSecondaryText
+
+        // Floating rounded "pill" background similar to the reference.
+        self.tabBar.isTranslucent = true
+        self.tabBar.backgroundImage = UIImage()
+        self.tabBar.shadowImage = UIImage()
+
+        floatingTabBarBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+        floatingTabBarBackgroundView.isUserInteractionEnabled = false
+        floatingTabBarBackgroundView.clipsToBounds = false
+        floatingTabBarBackgroundView.layer.cornerRadius = 26
+        floatingTabBarBackgroundView.layer.cornerCurve = .continuous
+        floatingTabBarBackgroundView.layer.shadowColor = UIColor.black.cgColor
+        floatingTabBarBackgroundView.layer.shadowOpacity = 0.10
+        floatingTabBarBackgroundView.layer.shadowRadius = 18
+        floatingTabBarBackgroundView.layer.shadowOffset = CGSize(width: 0, height: 6)
+        floatingTabBarBackgroundView.contentView.backgroundColor = UIColor.secondarySystemBackground.withAlphaComponent(0.75)
+
+        self.tabBar.insertSubview(floatingTabBarBackgroundView, at: 0)
+        self.updateFloatingTabBarConstraintsIfNeeded()
+    }
+
+    override func viewDidLayoutSubviews()
+    {
+        super.viewDidLayoutSubviews()
+        self.updateFloatingTabBarConstraintsIfNeeded()
+        floatingTabBarBackgroundView.layer.shadowPath = UIBezierPath(
+            roundedRect: floatingTabBarBackgroundView.bounds,
+            cornerRadius: floatingTabBarBackgroundView.layer.cornerRadius
+        ).cgPath
+    }
+
+    private func updateFloatingTabBarConstraintsIfNeeded()
+    {
+        guard floatingTabBarBackgroundView.superview === self.tabBar else { return }
+        guard floatingTabBarBackgroundConstraints.isEmpty else { return }
+
+        let sideInset: CGFloat = 18
+        let height: CGFloat = 64
+        let bottomInset: CGFloat = 8
+
+        floatingTabBarBackgroundConstraints = [
+            floatingTabBarBackgroundView.leadingAnchor.constraint(equalTo: tabBar.leadingAnchor, constant: sideInset),
+            floatingTabBarBackgroundView.trailingAnchor.constraint(equalTo: tabBar.trailingAnchor, constant: -sideInset),
+            floatingTabBarBackgroundView.heightAnchor.constraint(equalToConstant: height),
+            floatingTabBarBackgroundView.bottomAnchor.constraint(equalTo: tabBar.bottomAnchor, constant: -(bottomInset + tabBar.safeAreaInsets.bottom)),
+        ]
+        NSLayoutConstraint.activate(floatingTabBarBackgroundConstraints)
     }
     
     override func viewDidAppear(_ animated: Bool)
