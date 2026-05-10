@@ -77,7 +77,7 @@ final class TabBarController: UITabBarController
 
             let liveContainerNavigationController = UINavigationController(rootViewController: LiveContainerHubViewController())
             liveContainerNavigationController.navigationBar.prefersLargeTitles = true
-            liveContainerNavigationController.tabBarItem.title = NSLocalizedString("Live", comment: "Tab strip: opens Live Container hub")
+            liveContainerNavigationController.tabBarItem.title = "LC"
             liveContainerNavigationController.tabBarItem.image = UIImage(systemName: "shippingbox.fill")
             liveContainerNavigationController.tabBarItem.selectedImage = UIImage(systemName: "shippingbox.fill")
             liveContainerNavigationController.tabBarItem.accessibilityLabel = NSLocalizedString("Live Container", comment: "")
