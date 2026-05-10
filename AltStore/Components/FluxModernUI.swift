@@ -13,7 +13,6 @@ extension UIColor {
     static let fluxPrimary = UIColor.systemBlue
     static let fluxSecondary = UIColor.systemPurple
     static let fluxAccent = UIColor.systemIndigo
-    static let fluxSecondaryText = UIColor.secondaryLabel
     
     // Modern gradient colors
     static let fluxGradientStart = UIColor.systemBackground
