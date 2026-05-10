@@ -189,6 +189,10 @@ ifneq ($(strip $(BUNDLE_ID_SUFFIX)),)
 COMMON_BUILD_SETTINGS += BUNDLE_ID_SUFFIX=$(BUNDLE_ID_SUFFIX)
 endif
 
+# Matches PRODUCT_NAME in Build.xcconfig (bundle folder + Mach-O inside SideStore.xcarchive).
+ARCHIVE_APP_DIR := FluxStore.app
+ARCHIVE_EXECUTABLE := FluxStore
+
 patch-altsign-spm:
 	@python3 scripts/ci/patch_altsign_package_swift.py
 
@@ -253,20 +257,20 @@ clean-build:
 	@xcodebuild clean -project AltStore.xcodeproj -scheme SideStore
 
 fakesign-apps:
-	rm -rf SideStore.xcarchive/Products/Applications/SideStore.app/Frameworks/AltStoreCore.framework/Frameworks/
-	ldid -SAltStore/Resources/ReleaseEntitlements.plist SideStore.xcarchive/Products/Applications/SideStore.app/SideStore
-	ldid -SAltWidget/Resources/ReleaseEntitlements.plist SideStore.xcarchive/Products/Applications/SideStore.app/PlugIns/AltWidgetExtension.appex/AltWidgetExtension
+	rm -rf SideStore.xcarchive/Products/Applications/$(ARCHIVE_APP_DIR)/Frameworks/AltStoreCore.framework/Frameworks/
+	ldid -SAltStore/Resources/ReleaseEntitlements.plist SideStore.xcarchive/Products/Applications/$(ARCHIVE_APP_DIR)/$(ARCHIVE_EXECUTABLE)
+	ldid -SAltWidget/Resources/ReleaseEntitlements.plist SideStore.xcarchive/Products/Applications/$(ARCHIVE_APP_DIR)/PlugIns/AltWidgetExtension.appex/AltWidgetExtension
 
 fakesign-altbackup:	
 	@echo ''
 	@echo "fake-signing altbackup even though it will get resigned, only to retain its entitlements (appGroups)"
-	unzip -q -o SideStore.xcarchive/Products/Applications/SideStore.app/AltBackup.ipa -d SideStore.xcarchive/Products/Applications/SideStore.app/
-	ldid -SAltBackup/Resources/ReleaseEntitlements.plist SideStore.xcarchive/Products/Applications/SideStore.app/Payload/AltBackup.app/AltBackup
-	pushd "SideStore.xcarchive/Products/Applications/SideStore.app/"  > /dev/null; \
+	unzip -q -o SideStore.xcarchive/Products/Applications/$(ARCHIVE_APP_DIR)/AltBackup.ipa -d SideStore.xcarchive/Products/Applications/$(ARCHIVE_APP_DIR)/
+	ldid -SAltBackup/Resources/ReleaseEntitlements.plist SideStore.xcarchive/Products/Applications/$(ARCHIVE_APP_DIR)/Payload/AltBackup.app/AltBackup
+	pushd "SideStore.xcarchive/Products/Applications/$(ARCHIVE_APP_DIR)/"  > /dev/null; \
 	rm -f     AltBackup.ipa; \
 	zip -r AltBackup.ipa Payload; \
 	popd  > /dev/null
-	@rm -rf SideStore.xcarchive/Products/Applications/SideStore.app/Payload
+	@rm -rf SideStore.xcarchive/Products/Applications/$(ARCHIVE_APP_DIR)/Payload
 
 fakesign: fakesign-apps fakesign-altbackup				
 
@@ -274,8 +278,8 @@ fakesign: fakesign-apps fakesign-altbackup
 ipa:
 	@echo ''
 	@echo "fake-signing sidestore"
-	mkdir -p Payload/SideStore.app
-	cp -R SideStore.xcarchive/Products/Applications/SideStore.app/ Payload/SideStore.app/
+	mkdir -p Payload/$(ARCHIVE_APP_DIR)
+	cp -R SideStore.xcarchive/Products/Applications/$(ARCHIVE_APP_DIR)/ Payload/$(ARCHIVE_APP_DIR)/
 	rm -f     SideStore.ipa
 	zip -r SideStore.ipa Payload
 	rm -rf Payload*/

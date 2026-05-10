@@ -74,10 +74,8 @@
 		A8036EA22F5463AB00097AF1 /* node_list.h in Headers */ = {isa = PBXBuildFile; fileRef = A8BD31932F5440300045335F /* node_list.h */; };
 		A8036EA32F5463AB00097AF1 /* object.h in Headers */ = {isa = PBXBuildFile; fileRef = A8BD31942F5440300045335F /* object.h */; };
 		A8036EA42F5463AB00097AF1 /* node.h in Headers */ = {isa = PBXBuildFile; fileRef = A8BD31922F5440300045335F /* node.h */; };
-		A8036EA82F54644B00097AF1 /* libimobiledevice.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A8036EA72F54642D00097AF1 /* libimobiledevice.a */; };
 		A8037A012F54661200097AF1 /* libimobiledevice.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A8036EA72F54642D00097AF1 /* libimobiledevice.a */; };
 		A8037A0E2F54664300097AF1 /* libem_proxy_swift.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A8037A0D2F54664300097AF1 /* libem_proxy_swift.a */; };
-		A8038ABC2F54684D00097AF1 /* libem_proxy_swift.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A8037A0D2F54664300097AF1 /* libem_proxy_swift.a */; };
 		A8038AC82F54687A00097AF1 /* libem_proxy_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A8EB8CBC2F5453CD0094BC01 /* libem_proxy_static.a */; };
 		A803924B2F552F4C00097AF1 /* Minimuxer in Frameworks */ = {isa = PBXBuildFile; productRef = A803924A2F552F4C00097AF1 /* Minimuxer */; };
 		A803924E2F552FDA00097AF1 /* AltSign-Static in Frameworks */ = {isa = PBXBuildFile; productRef = A803924D2F552FDA00097AF1 /* AltSign-Static */; };
@@ -757,8 +755,6 @@
 				A8037A012F54661200097AF1 /* libimobiledevice.a in Frameworks */,
 				A8B646012D70C23E00125819 /* MarkdownKit in Frameworks */,
 				A8037A0E2F54664300097AF1 /* libem_proxy_swift.a in Frameworks */,
-				A8036EA82F54644B00097AF1 /* libimobiledevice.a in Frameworks */,
-				A8038ABC2F54684D00097AF1 /* libem_proxy_swift.a in Frameworks */,
 				A8EB89D02F5451C20094BC01 /* KeychainAccess in Frameworks */,
 				A8C2260E2EC9039A00047C0D /* Nuke in Frameworks */,
 				A83FE3672EC90482005ACE9A /* Starscream in Frameworks */,
