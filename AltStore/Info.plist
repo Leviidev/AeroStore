@@ -103,6 +103,9 @@
 		<string>fluxstore-com.flux.fluxstore</string>
 		<string>sidestore-com.SideStore.SideStore</string>
 		<string>sidestore-com.SideStore.SideStore.Beta</string>
+		<string>livecontainer</string>
+		<string>livecontainer2</string>
+		<string>livecontainer3</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>

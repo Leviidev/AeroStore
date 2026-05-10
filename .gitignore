@@ -45,6 +45,10 @@ Payload/
 **/*.dSYM
 
 Dependencies/.*-prebuilt-fetch-*
+
+## Optional upstream LiveContainer clone at repo root only (nested AltStore/LiveContainer/ is FluxStore hub code).
+/LiveContainer/
+
 SideStore/minimuxer/*
 SideStore/em_proxy/*
 !Dependencies/**/.gitkeep
