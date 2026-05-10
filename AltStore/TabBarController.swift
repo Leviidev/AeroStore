@@ -125,7 +125,7 @@ final class TabBarController: UITabBarController
         floatingTabBarBackgroundView.layer.shadowOpacity = 0.10
         floatingTabBarBackgroundView.layer.shadowRadius = 18
         floatingTabBarBackgroundView.layer.shadowOffset = CGSize(width: 0, height: 6)
-        floatingTabBarBackgroundView.contentView.backgroundColor = UIColor.secondarySystemBackground.withAlphaComponent(0.75)
+        self.applyFloatingTabBarVisualStyle()
 
         self.tabBar.insertSubview(floatingTabBarBackgroundView, at: 0)
         self.updateFloatingTabBarConstraintsIfNeeded()
@@ -148,24 +148,65 @@ final class TabBarController: UITabBarController
         NSLayoutConstraint.deactivate(floatingTabBarBackgroundConstraints)
         floatingTabBarBackgroundConstraints.removeAll()
 
-        let sideInset: CGFloat = 20
-        let height: CGFloat = 56
-        let bottomPadding: CGFloat = 10
-
         let guide = self.tabBar.safeAreaLayoutGuide
-        floatingTabBarBackgroundConstraints = [
-            floatingTabBarBackgroundView.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: sideInset),
-            floatingTabBarBackgroundView.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -sideInset),
-            floatingTabBarBackgroundView.heightAnchor.constraint(equalToConstant: height),
-            floatingTabBarBackgroundView.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -bottomPadding),
-        ]
+        /// iOS 26+ shows the detached “floating” pill cleanly; older systems leave awkward empty strips
+        /// beside/below it, so we fill the tab bar’s full bounds like a classic bar.
+        if #available(iOS 26.0, *)
+        {
+            let sideInset: CGFloat = self.traitCollection.userInterfaceIdiom == .pad ? 28 : 20
+            let height: CGFloat = 56
+            let bottomPadding: CGFloat = 10
+            floatingTabBarBackgroundConstraints = [
+                floatingTabBarBackgroundView.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: sideInset),
+                floatingTabBarBackgroundView.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -sideInset),
+                floatingTabBarBackgroundView.heightAnchor.constraint(equalToConstant: height),
+                floatingTabBarBackgroundView.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -bottomPadding),
+            ]
+            let pillRadius = height / 2
+            floatingTabBarBackgroundView.layer.cornerRadius = pillRadius
+            floatingTabBarBackgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
+            floatingTabBarBackgroundView.layer.masksToBounds = false
+        }
+        else
+        {
+            floatingTabBarBackgroundConstraints = [
+                floatingTabBarBackgroundView.leadingAnchor.constraint(equalTo: self.tabBar.leadingAnchor),
+                floatingTabBarBackgroundView.trailingAnchor.constraint(equalTo: self.tabBar.trailingAnchor),
+                floatingTabBarBackgroundView.topAnchor.constraint(equalTo: self.tabBar.topAnchor),
+                floatingTabBarBackgroundView.bottomAnchor.constraint(equalTo: self.tabBar.bottomAnchor),
+            ]
+            floatingTabBarBackgroundView.layer.cornerRadius = 0
+            floatingTabBarBackgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner]
+            floatingTabBarBackgroundView.layer.masksToBounds = false
+            floatingTabBarBackgroundView.layer.shadowOpacity = 0
+        }
+
         NSLayoutConstraint.activate(floatingTabBarBackgroundConstraints)
 
-        let pillRadius = height / 2
-        if abs(floatingTabBarBackgroundView.layer.cornerRadius - pillRadius) > 0.5
-        {
-            floatingTabBarBackgroundView.layer.cornerRadius = pillRadius
+        applyFloatingTabBarVisualStyle()
+    }
+
+    private func applyFloatingTabBarVisualStyle()
+    {
+        if #available(iOS 26.0, *) {
+            floatingTabBarBackgroundView.contentView.backgroundColor = UIColor.secondarySystemBackground.withAlphaComponent(0.75)
+            floatingTabBarBackgroundView.layer.shadowOpacity = 0.10
         }
+        else
+        {
+            // Solid-enough backdrop so separators don’t flash through non–iOS-26 layouts.
+            floatingTabBarBackgroundView.contentView.backgroundColor = UIColor.systemBackground.withAlphaComponent(0.94)
+            floatingTabBarBackgroundView.layer.shadowOpacity = 0
+        }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?)
+    {
+        super.traitCollectionDidChange(previousTraitCollection)
+        guard traitCollection.horizontalSizeClass != previousTraitCollection?.horizontalSizeClass
+            || traitCollection.userInterfaceIdiom != previousTraitCollection?.userInterfaceIdiom
+            else { return }
+        self.updateFloatingTabBarConstraintsIfNeeded()
     }
     
     override func viewDidAppear(_ animated: Bool)

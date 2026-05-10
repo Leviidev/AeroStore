@@ -21,6 +21,9 @@ import Nuke
 
 private let maximumCollapsedUpdatesCount = 2
 private let myAppsInstalledCardInset: CGFloat = 16
+/// Matches active/inactive `InstalledAppCollectionViewCell` banner `layoutMargins` so headers line up with row content.
+private let installedAppsBannerLayoutMarginInset: CGFloat = 8
+private var installedAppsSectionHeaderHorizontalInset: CGFloat { myAppsInstalledCardInset + installedAppsBannerLayoutMarginInset }
 
 extension MyAppsViewController
 {
@@ -1911,7 +1914,7 @@ extension MyAppsViewController
             let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "ActiveAppsHeader", for: indexPath) as! InstalledAppsCollectionHeaderView
             
             UIView.performWithoutAnimation {
-                headerView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: myAppsInstalledCardInset, bottom: 0, trailing: myAppsInstalledCardInset)
+                headerView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: installedAppsSectionHeaderHorizontalInset, bottom: 0, trailing: installedAppsSectionHeaderHorizontalInset)
                 
                 if UserDefaults.standard.activeAppsLimit == nil || UserDefaults.standard.isAppLimitDisabled
                 {
@@ -1948,7 +1951,7 @@ extension MyAppsViewController
             let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "InactiveAppsHeader", for: indexPath) as! InstalledAppsCollectionHeaderView
             
             UIView.performWithoutAnimation {
-                headerView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: myAppsInstalledCardInset, bottom: 0, trailing: myAppsInstalledCardInset)
+                headerView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: installedAppsSectionHeaderHorizontalInset, bottom: 0, trailing: installedAppsSectionHeaderHorizontalInset)
                 
                 headerView.textLabel.text = NSLocalizedString("Inactive", comment: "")
                 headerView.button.setTitle(nil, for: .normal)
@@ -2326,9 +2329,9 @@ extension MyAppsViewController: UICollectionViewDelegateFlowLayout
             let height: CGFloat = (self.updatesDataSource.fetchedResultsController.fetchedObjects?.count ?? 0 > maximumCollapsedUpdatesCount) ? 22 : 0
             return CGSize(width: collectionView.bounds.width, height: height)
             
-        case .activeApps: return CGSize(width: collectionView.bounds.width, height: 40)
+        case .activeApps: return CGSize(width: collectionView.bounds.width, height: 44)
         case .inactiveApps where self.inactiveAppsDataSource.itemCount == 0: return .zero
-        case .inactiveApps: return CGSize(width: collectionView.bounds.width, height: 40)
+        case .inactiveApps: return CGSize(width: collectionView.bounds.width, height: 44)
         }
     }
     
@@ -2381,7 +2384,8 @@ extension MyAppsViewController: UICollectionViewDelegateFlowLayout
         case .updates:
             return UIEdgeInsets(top: 6, left: myAppsInstalledCardInset, bottom: 8, right: myAppsInstalledCardInset)
         case .activeApps, .inactiveApps:
-            return UIEdgeInsets(top: 2, left: myAppsInstalledCardInset, bottom: 14, right: myAppsInstalledCardInset)
+            // Tighter top keeps the list visually grouped directly under “Installed” / “Inactive”.
+            return UIEdgeInsets(top: 6, left: myAppsInstalledCardInset, bottom: 14, right: myAppsInstalledCardInset)
         default: return UIEdgeInsets(top: 12, left: 0, bottom: 20, right: 0)
         }
     }
