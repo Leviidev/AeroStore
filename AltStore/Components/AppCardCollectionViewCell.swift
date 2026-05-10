@@ -170,37 +170,81 @@ class AppCardCollectionViewCell: UICollectionViewCell
     }
     
     func makeScreenshotsLayout() -> NSCollectionLayoutSection {
-                // Otherwise, only have flexible spacing on the leading edge, which will be balanced by trailingGroup's flexible trailing spacing.
-                item.edgeSpacing = NSCollectionLayoutEdgeSpacing(leading: .flexible(0), top: nil, trailing: nil, bottom: nil)
-            }
-            
-            let groupItem = NSCollectionLayoutItem(layoutSize: itemSize)
-            let trailingGroup = NSCollectionLayoutGroup.horizontal(layoutSize: itemSize, subitems: [groupItem])
-            trailingGroup.edgeSpacing = NSCollectionLayoutEdgeSpacing(leading: nil, top: nil, trailing: .flexible(0), bottom: nil)
-            
-            let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
-            let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, trailingGroup])
-            group.interItemSpacing = .fixed(minimumItemSpacing)
-            
-            if numberOfVisibleScreenshots < self.screenshots.count
-            {
-                // There are more screenshots than what is displayed, so no need to manually center them.
-            }
-            else
-            {
-                // We're showing all screenshots initially, so make sure they're centered.
-                
-                let insetWidth = (layoutEnvironment.container.effectiveContentSize.width - contentWidth) / 2.0
-                group.contentInsets.leading = (insetWidth - 1).rounded(.down) // Subtract 1 to avoid overflowing/clipping
-            }
-            
-            let layoutSection = NSCollectionLayoutSection(group: group)
-            layoutSection.orthogonalScrollingBehavior = .groupPagingCentered
-            layoutSection.interGroupSpacing = self.screenshotsCollectionView.directionalLayoutMargins.leading + self.screenshotsCollectionView.directionalLayoutMargins.trailing
-            return layoutSection
-        }, configuration: layoutConfig)
+        var contentWidth = 0.0
+        var numberOfVisibleScreenshots = 0
         
-        return layout
+        for screenshot in self.screenshots
+        {
+            var aspectRatio = screenshot.aspectRatio
+            if aspectRatio.width > aspectRatio.height
+            {
+                switch screenshot.deviceType
+                {
+                case .iphone:
+                    // Always rotate landscape iPhone screenshots
+                    aspectRatio = CGSize(width: aspectRatio.height, height: aspectRatio.width)
+                    
+                case .ipad:
+                    // Never rotate iPad screenshots
+                    break
+                    
+                default: break
+                }
+            }
+            
+            let screenshotWidth = (layoutEnvironment.container.effectiveContentSize.height * (aspectRatio.width / aspectRatio.height)).rounded(.up) // Round to ensure we over-estimate contentWidth.
+            
+            let totalContentWidth = contentWidth + (screenshotWidth + minimumItemSpacing)
+            if totalContentWidth > layoutEnvironment.container.effectiveContentSize.width
+            {
+                // totalContentWidth is larger than visible width.
+                break
+            }
+            
+            contentWidth = totalContentWidth
+            numberOfVisibleScreenshots += 1
+        }
+        
+        // Use .estimated(1) to ensure we don't over-estimate widths, which can cause incorrect layouts for the last group.
+        let itemSize = NSCollectionLayoutSize(widthDimension: .estimated(1), heightDimension: .fractionalHeight(1.0))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        
+        if numberOfVisibleScreenshots == 1
+        {
+            // If there's only one screenshot visible initially, we'll (reluctantly) opt-in to flexible spacing on both sides.
+            // This ensures the items are always centered, but may result in larger spacings between items than we'd prefer.
+            item.edgeSpacing = NSCollectionLayoutEdgeSpacing(leading: .flexible(0), top: nil, trailing: .flexible(0), bottom: nil)
+        }
+        else
+        {
+            // Otherwise, only have flexible spacing on the leading edge, which will be balanced by trailingGroup's flexible trailing spacing.
+            item.edgeSpacing = NSCollectionLayoutEdgeSpacing(leading: .flexible(0), top: nil, trailing: nil, bottom: nil)
+        }
+        
+        let groupItem = NSCollectionLayoutItem(layoutSize: itemSize)
+        let trailingGroup = NSCollectionLayoutGroup.horizontal(layoutSize: itemSize, subitems: [groupItem])
+        trailingGroup.edgeSpacing = NSCollectionLayoutEdgeSpacing(leading: nil, top: nil, trailing: .flexible(0), bottom: nil)
+        
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item, trailingGroup])
+        group.interItemSpacing = .fixed(minimumItemSpacing)
+        
+        if numberOfVisibleScreenshots < self.screenshots.count
+        {
+            // There are more screenshots than what is displayed, so no need to manually center them.
+        }
+        else
+        {
+            // We're showing all screenshots initially, so make sure they're centered.
+            
+            let insetWidth = (layoutEnvironment.container.effectiveContentSize.width - contentWidth) / 2.0
+            group.contentInsets.leading = (insetWidth - 1).rounded(.down) // Subtract 1 to avoid overflowing/clipping
+        }
+        
+        let layoutSection = NSCollectionLayoutSection(group: group)
+        layoutSection.orthogonalScrollingBehavior = .groupPagingCentered
+        layoutSection.interGroupSpacing = self.screenshotsCollectionView.directionalLayoutMargins.leading + self.screenshotsCollectionView.directionalLayoutMargins.trailing
+        return layoutSection
     }
     
     func makeDataSource() -> RSTArrayCollectionViewPrefetchingDataSource<AppScreenshot, UIImage>
