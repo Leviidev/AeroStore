@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import Lottie
 
 class FluxToastView: UIView {
     private let containerView = UIView()

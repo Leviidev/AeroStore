@@ -565,6 +565,10 @@
 				Errors/ALTLocalizedError.swift,
 				Errors/UserInfoValue.swift,
 				"Extensions/ALTApplication+AltStoreApp.swift",
+				"Components/FluxNotificationManager.swift",
+				"Components/FluxToastView.swift",
+				"Components/FluxNotificationCenterViewController.swift",
+				"Components/FluxModernUI.swift",
 			);
 			target = BFD247692284B9A500981D42 /* SideStore */;
 		};
