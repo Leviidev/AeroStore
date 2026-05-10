@@ -723,13 +723,7 @@
                             <outlet property="delegate" destination="hv7-Ar-voT" id="1PN-pf-cZK"/>
                         </connections>
                     </collectionView>
-                    <navigationItem key="navigationItem" title="My Apps" id="zLJ-Cg-ijh">
-                        <barButtonItem key="leftBarButtonItem" systemItem="add" id="4MN-JN-Knh">
-                            <connections>
-                                <action selector="sideloadApp:" destination="hv7-Ar-voT" id="Tjv-oi-2H0"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" title="My Apps" id="zLJ-Cg-ijh"/>
                     <connections>
                         <segue destination="0V6-N4-hTO" kind="show" identifier="showUpdate" id="dzt-2e-VM9"/>
                     </connections>

@@ -22,10 +22,18 @@ final class InstalledAppCollectionViewCell: UICollectionViewCell
         
         self.contentView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         self.contentView.preservesSuperviewLayoutMargins = true
+        self.contentView.backgroundColor = UIColor.fluxCardBackground
         self.contentView.layer.cornerRadius = 20
         self.contentView.layer.cornerCurve = .continuous
         self.contentView.layer.borderWidth = 1
         self.contentView.layer.borderColor = UIColor.fluxCardBorder.cgColor
+        self.contentView.layer.masksToBounds = true
+
+        self.layer.masksToBounds = false
+        self.layer.shadowColor = UIColor.black.cgColor
+        self.layer.shadowOpacity = 0.07
+        self.layer.shadowOffset = CGSize(width: 0, height: 3)
+        self.layer.shadowRadius = 10
         
         let deactivateBadge = UIView()
         deactivateBadge.translatesAutoresizingMaskIntoConstraints = false
@@ -54,6 +62,12 @@ final class InstalledAppCollectionViewCell: UICollectionViewCell
         ])
         
         self.deactivateBadge = deactivateBadge
+    }
+
+    override func layoutSubviews()
+    {
+        super.layoutSubviews()
+        self.layer.shadowPath = UIBezierPath(roundedRect: self.contentView.frame, cornerRadius: self.contentView.layer.cornerRadius).cgPath
     }
 }
 

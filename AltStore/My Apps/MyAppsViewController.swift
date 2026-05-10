@@ -20,6 +20,7 @@ import SemanticVersion
 import Nuke
 
 private let maximumCollapsedUpdatesCount = 2
+private let myAppsInstalledCardInset: CGFloat = 16
 
 extension MyAppsViewController
 {
@@ -64,6 +65,16 @@ class MyAppsViewController: UICollectionViewController, PeekPopPreviewing
 
     private var fluxSelfUpdateInfo: FluxStoreGitHubRelease.UpdateInfo?
     
+    private lazy var sideloadBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(MyAppsViewController.sideloadApp(_:)))
+    private lazy var appsSearchController: UISearchController = {
+        let sc = UISearchController(searchResultsController: nil)
+        sc.searchResultsUpdater = self
+        sc.obscuresBackgroundDuringPresentation = false
+        sc.searchBar.placeholder = NSLocalizedString("Search apps", comment: "")
+        return sc
+    }()
+    private var installedAppsSearchText = ""
+    
     // Cache
     private var cachedUpdateSizes = [String: CGSize]()
     
@@ -73,6 +84,7 @@ class MyAppsViewController: UICollectionViewController, PeekPopPreviewing
         
         NotificationCenter.default.addObserver(self, selector: #selector(MyAppsViewController.didFetchSource(_:)), name: AppManager.didFetchSourceNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(MyAppsViewController.importApp(_:)), name: AppDelegate.importAppDeepLinkNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(MyAppsViewController.minimuxerOrForegroundChanged), name: UIApplication.willEnterForegroundNotification, object: nil)
     }
     
     override func viewDidLoad()
@@ -123,9 +135,98 @@ class MyAppsViewController: UICollectionViewController, PeekPopPreviewing
         
         NotificationCenter.default.addObserver(self, selector: #selector(MyAppsViewController.didChangeAppIcon(_:)), name: UIApplication.didChangeAppIconNotification, object: nil)
 
+        self.configureMyAppsNavigationChrome()
+    }
+
+    private func configureMyAppsNavigationChrome()
+    {
+        self.definesPresentationContext = true
+        self.navigationItem.searchController = self.appsSearchController
+        self.navigationItem.hidesSearchBarWhenScrolling = false
+
         let jitButton = UIBarButtonItem(image: UIImage(systemName: "bolt.fill"), style: .plain, target: self, action: #selector(MyAppsViewController.presentFluxJIT(_:)))
         jitButton.accessibilityLabel = "JIT"
-        navigationItem.rightBarButtonItems = [jitButton]
+        self.sideloadBarButtonItem.accessibilityLabel = NSLocalizedString("Sideload App", comment: "")
+        self.navigationItem.rightBarButtonItems = [jitButton, self.sideloadBarButtonItem]
+
+        self.refreshMyAppsStatusNavigationItem()
+    }
+
+    private func refreshMyAppsStatusNavigationItem()
+    {
+        let stack = UIStackView()
+        stack.axis = .horizontal
+        stack.spacing = 8
+        stack.alignment = .center
+        stack.translatesAutoresizingMaskIntoConstraints = false
+
+        if let alt = InstalledApp.fetchAltStore(in: DatabaseManager.shared.viewContext)
+        {
+            let days = alt.expirationDate.numberOfCalendarDays(since: Date())
+            let text: String
+            let color: UIColor
+            if days <= 0
+            {
+                text = NSLocalizedString("Expired", comment: "")
+                color = .systemRed
+            }
+            else if days <= 2
+            {
+                text = String(format: NSLocalizedString("%d days", comment: ""), days)
+                color = .systemOrange
+            }
+            else
+            {
+                text = String(format: NSLocalizedString("%d days", comment: ""), days)
+                color = .systemGreen
+            }
+            stack.addArrangedSubview(Self.statusCapsule(text: text, color: color))
+        }
+
+        let muxReady = !UserDefaults.standard.isMinimuxerStatusCheckEnabled || isMinimuxerReady
+        let muxText = muxReady ? NSLocalizedString("Connected", comment: "") : NSLocalizedString("Disconnected", comment: "")
+        let muxColor: UIColor = muxReady ? .systemGreen : .systemOrange
+        stack.addArrangedSubview(Self.statusCapsule(text: muxText, color: muxColor))
+
+        let wrap = UIView()
+        wrap.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: wrap.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: wrap.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: wrap.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: wrap.bottomAnchor),
+        ])
+
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(customView: wrap)
+    }
+
+    private static func statusCapsule(text: String, color: UIColor) -> UIView
+    {
+        let label = UILabel()
+        label.text = text
+        label.font = .systemFont(ofSize: 13, weight: .semibold)
+        label.textColor = color
+        label.translatesAutoresizingMaskIntoConstraints = false
+
+        let pill = UIView()
+        pill.backgroundColor = color.withAlphaComponent(0.14)
+        pill.layer.cornerRadius = 14
+        pill.layer.cornerCurve = .continuous
+        pill.translatesAutoresizingMaskIntoConstraints = false
+        pill.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: pill.leadingAnchor, constant: 10),
+            label.trailingAnchor.constraint(equalTo: pill.trailingAnchor, constant: -10),
+            label.topAnchor.constraint(equalTo: pill.topAnchor, constant: 5),
+            label.bottomAnchor.constraint(equalTo: pill.bottomAnchor, constant: -5),
+        ])
+        return pill
+    }
+
+    @objc private func minimuxerOrForegroundChanged()
+    {
+        guard self.isViewLoaded else { return }
+        self.refreshMyAppsStatusNavigationItem()
     }
 
     @objc private func presentFluxJIT(_ sender: Any?)
@@ -148,6 +249,7 @@ class MyAppsViewController: UICollectionViewController, PeekPopPreviewing
         self.collectionView.reloadData()
         
         self.update()
+        self.refreshMyAppsStatusNavigationItem()
         
         self.fetchAppIDs()
         self.refreshFluxSelfUpdateIfNeeded()
@@ -376,8 +478,8 @@ private extension MyAppsViewController
             let tintColor = installedApp.storeApp?.tintColor ?? .altPrimary
             
             let cell = cell as! InstalledAppCollectionViewCell
-            cell.layoutMargins.left = self.view.layoutMargins.left
-            cell.layoutMargins.right = self.view.layoutMargins.right
+            cell.layoutMargins.left = 8
+            cell.layoutMargins.right = 8
             cell.tintColor = tintColor
             
             cell.deactivateBadge?.isHidden = false
@@ -514,8 +616,8 @@ private extension MyAppsViewController
             let tintColor = installedApp.storeApp?.tintColor ?? .altPrimary
             
             let cell = cell as! InstalledAppCollectionViewCell
-            cell.layoutMargins.left = self.view.layoutMargins.left
-            cell.layoutMargins.right = self.view.layoutMargins.right
+            cell.layoutMargins.left = 8
+            cell.layoutMargins.right = 8
             cell.tintColor = UIColor.gray
             
             cell.bannerView.iconImageView.isIndicatingActivity = true
@@ -595,6 +697,37 @@ private extension MyAppsViewController
         {
             print("[ALTLog] Failed to fetch updates:", error)
         }
+    }
+
+    func applyInstalledAppsSearchPredicates()
+    {
+        let baseActive = NSPredicate(format: "%K == YES", #keyPath(InstalledApp.isActive))
+        let baseInactive = NSPredicate(format: "%K == NO", #keyPath(InstalledApp.isActive))
+        let trimmed = self.installedAppsSearchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.isEmpty
+        {
+            self.activeAppsDataSource.fetchedResultsController.fetchRequest.predicate = baseActive
+            self.inactiveAppsDataSource.fetchedResultsController.fetchRequest.predicate = baseInactive
+        }
+        else
+        {
+            let namePredicate = NSPredicate(format: "(name CONTAINS[cd] %@) OR (bundleIdentifier CONTAINS[cd] %@)", trimmed, trimmed)
+            self.activeAppsDataSource.fetchedResultsController.fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [baseActive, namePredicate])
+            self.inactiveAppsDataSource.fetchedResultsController.fetchRequest.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [baseInactive, namePredicate])
+        }
+
+        do
+        {
+            try self.activeAppsDataSource.fetchedResultsController.performFetch()
+            try self.inactiveAppsDataSource.fetchedResultsController.performFetch()
+        }
+        catch
+        {
+            print("[ALTLog] Installed apps search fetch failed:", error)
+        }
+
+        self.collectionView.reloadData()
     }
 }
 
@@ -913,7 +1046,7 @@ private extension MyAppsViewController
     {
         let progress = Progress.discreteProgress(totalUnitCount: 100)
         
-        self.navigationItem.leftBarButtonItem?.isIndicatingActivity = true
+        self.sideloadBarButtonItem.isIndicatingActivity = true
         
         class Context
         {
@@ -1039,7 +1172,7 @@ private extension MyAppsViewController
             try? FileManager.default.removeItem(at: temporaryDirectory)
             
             DispatchQueue.main.async {
-                self.navigationItem.leftBarButtonItem?.isIndicatingActivity = false
+                self.sideloadBarButtonItem.isIndicatingActivity = false
                 self.sideloadingProgressView.observedProgress = nil
                 self.sideloadingProgressView.setHidden(true, animated: true)
                 
@@ -2152,7 +2285,8 @@ extension MyAppsViewController: UICollectionViewDelegateFlowLayout
             return size
             
         case .activeApps, .inactiveApps:
-            return CGSize(width: collectionView.bounds.width, height: 88)
+            let w = max(0, collectionView.bounds.width - myAppsInstalledCardInset * 2)
+            return CGSize(width: w, height: 88)
         }
     }
     
@@ -2167,9 +2301,9 @@ extension MyAppsViewController: UICollectionViewDelegateFlowLayout
             let height: CGFloat = (self.updatesDataSource.fetchedResultsController.fetchedObjects?.count ?? 0 > maximumCollapsedUpdatesCount) ? 26 : 0
             return CGSize(width: collectionView.bounds.width, height: height)
             
-        case .activeApps: return CGSize(width: collectionView.bounds.width, height: 29)
+        case .activeApps: return CGSize(width: collectionView.bounds.width, height: 36)
         case .inactiveApps where self.inactiveAppsDataSource.itemCount == 0: return .zero
-        case .inactiveApps: return CGSize(width: collectionView.bounds.width, height: 29)
+        case .inactiveApps: return CGSize(width: collectionView.bounds.width, height: 36)
         }
     }
     
@@ -2217,7 +2351,18 @@ extension MyAppsViewController: UICollectionViewDelegateFlowLayout
             return UIEdgeInsets(top: 12, left: 0, bottom: 8, right: 0)
         case .noUpdates where self.updatesDataSource.itemCount != 0: return .zero
         case .updates where self.updatesDataSource.itemCount == 0: return .zero
+        case .activeApps, .inactiveApps:
+            return UIEdgeInsets(top: 10, left: myAppsInstalledCardInset, bottom: 16, right: myAppsInstalledCardInset)
         default: return UIEdgeInsets(top: 12, left: 0, bottom: 20, right: 0)
+        }
+    }
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat
+    {
+        switch Section.allCases[section]
+        {
+        case .activeApps, .inactiveApps: return 11
+        default: return 15
         }
     }
 }
@@ -2636,6 +2781,15 @@ extension MyAppsViewController: UIViewControllerPreviewingDelegate
         guard Section.allCases[indexPath.section] == .updates else { return }
 
         self.performSegue(withIdentifier: "showUpdate", sender: cell)
+    }
+}
+
+extension MyAppsViewController: UISearchResultsUpdating
+{
+    func updateSearchResults(for searchController: UISearchController)
+    {
+        self.installedAppsSearchText = searchController.searchBar.text ?? ""
+        self.applyInstalledAppsSearchPredicates()
     }
 }
 

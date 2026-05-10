@@ -25,6 +25,8 @@ final class InstalledAppsCollectionHeaderView: UICollectionReusableView
         self.button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         
         super.init(frame: frame)
+
+        self.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16)
         
         self.addSubview(self.textLabel)
         self.addSubview(self.button)
