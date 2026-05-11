@@ -16,7 +16,7 @@ enum FluxAppearancePreference: Int, CaseIterable
     static var current: FluxAppearancePreference
     {
         let raw = UserDefaults.standard.integer(forKey: storageKey)
-        return Self(rawValue: raw) ?? .dark
+        return Self(rawValue: raw) ?? .light
     }
 
     var userInterfaceStyle: UIUserInterfaceStyle

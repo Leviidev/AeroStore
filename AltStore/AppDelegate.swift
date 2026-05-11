@@ -68,7 +68,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
         // Register default settings before doing anything else.
         UserDefaults.registerDefaults()
-        UserDefaults.standard.register(defaults: [FluxAppearancePreference.storageKey: FluxAppearancePreference.dark.rawValue])
+        UserDefaults.standard.register(defaults: [FluxAppearancePreference.storageKey: FluxAppearancePreference.light.rawValue])
 
         FluxStikJITHostBootstrap.prepareIntegrations()
 

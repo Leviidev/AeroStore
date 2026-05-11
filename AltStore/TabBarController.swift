@@ -46,11 +46,14 @@ final class TabBarController: UITabBarController
 
         // Browse, My Apps, Notifications, Settings.
         if let vcs = self.viewControllers, vcs.count >= 4 {
-            let browseNavigationController = vcs[2] as! UINavigationController
+            // Ensure we have enough view controllers before accessing by index
+            guard vcs.count > 3 else { return }
+            
+            let browseNavigationController = vcs[0] as! UINavigationController
             browseNavigationController.tabBarItem.title = NSLocalizedString("Browse", comment: "")
             browseNavigationController.tabBarItem.image = UIImage(systemName: "square.grid.3x3.fill")
 
-            let myAppsNavigationController = vcs[3] as! UINavigationController
+            let myAppsNavigationController = vcs[1] as! UINavigationController
             myAppsNavigationController.tabBarItem.title = NSLocalizedString("My Apps", comment: "")
             myAppsNavigationController.tabBarItem.image = UIImage(systemName: "square.grid.2x2")
 
