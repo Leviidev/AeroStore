@@ -16,13 +16,13 @@ extension UIColor
         // (Our custom dark surface is kept for Flux's look.)
         traits.userInterfaceStyle == .dark
             ? UIColor(red: 0.13, green: 0.14, blue: 0.17, alpha: 1.0)
-            : UIColor.secondarySystemBackground
+            : UIColor.white
     }
     static let fluxCardBorder = UIColor { traits in
         // Match iOS separators while keeping a subtle Flux border.
         let base = UIColor.separator
         // Lighter border in light mode looks less "boxed" / AI-card-ish.
-        return traits.userInterfaceStyle == .dark ? base.withAlphaComponent(0.32) : base.withAlphaComponent(0.28)
+        return traits.userInterfaceStyle == .dark ? base.withAlphaComponent(0.32) : base.withAlphaComponent(0.15)
     }
     static let fluxSecondaryText = UIColor { traits in
         // Use dynamic label colors so light mode reads correctly.

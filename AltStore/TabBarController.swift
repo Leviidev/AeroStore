@@ -46,14 +46,28 @@ final class TabBarController: UITabBarController
 
         // Browse, My Apps, Notifications, Settings.
         if let vcs = self.viewControllers, vcs.count >= 4 {
-            // Ensure we have enough view controllers before accessing by index
-            guard vcs.count > 3 else { return }
+            // Find the correct view controllers by their storyboard identifiers or types
+            var myAppsNavController: UINavigationController?
+            var browseNavController: UINavigationController?
             
-            let browseNavigationController = vcs[0] as! UINavigationController
+            // Find My Apps navigation controller (should be the one with MyAppsViewController)
+            for vc in vcs {
+                if let nav = vc as? UINavigationController {
+                    if nav.viewControllers.contains(where: { $0 is MyAppsViewController }) {
+                        myAppsNavController = nav
+                    } else if nav.viewControllers.contains(where: { $0 is FeaturedViewController }) {
+                        browseNavController = nav
+                    }
+                }
+            }
+            
+            // Use found controllers or fall back to index-based access
+            let browseNavigationController = browseNavController ?? vcs[0] as! UINavigationController
+            let myAppsNavigationController = myAppsNavController ?? vcs[1] as! UINavigationController
+            
             browseNavigationController.tabBarItem.title = NSLocalizedString("Browse", comment: "")
             browseNavigationController.tabBarItem.image = UIImage(systemName: "square.grid.3x3.fill")
 
-            let myAppsNavigationController = vcs[1] as! UINavigationController
             myAppsNavigationController.tabBarItem.title = NSLocalizedString("My Apps", comment: "")
             myAppsNavigationController.tabBarItem.image = UIImage(systemName: "square.grid.2x2")
 
