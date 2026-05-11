@@ -120,7 +120,20 @@ final class TabBarController: UITabBarController
         self.tabBar.tintColor = .altPrimary
         self.tabBar.unselectedItemTintColor = .fluxSecondaryText
 
-        // Floating rounded "pill" background similar to the reference.
+        // Hide black bar completely on iOS 26+ with new bottom menu UI
+        if #available(iOS 26.0, *) {
+            self.tabBar.isTranslucent = true
+            self.tabBar.backgroundImage = UIImage()
+            self.tabBar.shadowImage = UIImage()
+            self.tabBar.backgroundColor = .clear
+            self.tabBar.barTintColor = .clear
+            
+            // Remove the floating background entirely on iOS 26+
+            floatingTabBarBackgroundView.isHidden = true
+            return
+        }
+
+        // Floating rounded "pill" background for older iOS versions
         self.tabBar.isTranslucent = true
         self.tabBar.backgroundImage = UIImage()
         self.tabBar.shadowImage = UIImage()

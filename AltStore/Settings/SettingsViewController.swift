@@ -680,6 +680,12 @@ private extension SettingsViewController
     {
         // LiveContainer / early layout can report 0 width while scrolling; that breaks Auto Layout and can crash.
         let layoutWidth = max(tableView.bounds.width, tableView.frame.width, view.bounds.width, UIScreen.main.bounds.width, 320)
+        
+        // Additional safety check to prevent crashes during rapid scrolling
+        guard layoutWidth > 0 && !Thread.isMainThread == false else {
+            return isHeader ? 60 : 40 // Return reasonable fallback heights
+        }
+        
         let widthConstraint = settingsHeaderFooterView.contentView.widthAnchor.constraint(equalToConstant: layoutWidth)
         NSLayoutConstraint.activate([widthConstraint])
         defer { NSLayoutConstraint.deactivate([widthConstraint]) }
@@ -687,7 +693,7 @@ private extension SettingsViewController
         self.prepare(settingsHeaderFooterView, for: section, isHeader: isHeader)
         
         let size = settingsHeaderFooterView.contentView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
-        return size.height
+        return max(size.height, isHeader ? 60 : 40) // Ensure minimum height
     }
     
     private func isSectionHidden(_ section: Section) -> Bool
