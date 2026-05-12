@@ -92,12 +92,12 @@ final class TabBarController: UITabBarController
 
             browseNavigationController.setViewControllers([featured], animated: false)
 
-            // Notifications tab
-            let notificationsViewController = FluxNotificationCenterViewController()
-            let notificationsNavigationController = UINavigationController(rootViewController: notificationsViewController)
-            notificationsNavigationController.navigationBar.prefersLargeTitles = true
-            notificationsNavigationController.tabBarItem.title = NSLocalizedString("Notifications", comment: "")
-            notificationsNavigationController.tabBarItem.image = UIImage(systemName: "bell.fill")
+            // Tools tab
+            let toolsViewController = FluxToolsViewController()
+            let toolsNavigationController = UINavigationController(rootViewController: toolsViewController)
+            toolsNavigationController.navigationBar.prefersLargeTitles = true
+            toolsNavigationController.tabBarItem.title = NSLocalizedString("Tools", comment: "")
+            toolsNavigationController.tabBarItem.image = UIImage(systemName: "wrench.and.screwdriver.fill")
 
             let settingsStoryboard = UIStoryboard(name: "Settings", bundle: nil)
             // Settings.storyboard's initial VC is ForwardingNavigationController (nav root), not SettingsViewController.
@@ -109,7 +109,7 @@ final class TabBarController: UITabBarController
             self.viewControllers = [
                 browseNavigationController,
                 myAppsNavigationController,
-                notificationsNavigationController,
+                toolsNavigationController,
                 settingsNavigationController,
             ]
         }
