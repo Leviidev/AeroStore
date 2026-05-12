@@ -92,6 +92,14 @@ class FluxNotificationManager: NSObject {
     
     // MARK: - Permission Management
     
+    func requestAuthorization() async {
+        return await withCheckedContinuation { continuation in
+            notificationCenter.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+                continuation.resume(returning: granted)
+            }
+        }
+    }
+    
     func requestNotificationPermission(completion: @escaping (Bool) -> Void) {
         notificationCenter.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
             DispatchQueue.main.async {
