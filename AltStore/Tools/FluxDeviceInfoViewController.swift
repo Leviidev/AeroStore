@@ -11,19 +11,7 @@ import SystemConfiguration
 
 class FluxDeviceInfoViewController: UIViewController {
     
-    private let deviceInfo = [
-        DeviceInfoItem(title: "Device Name", value: UIDevice.current.name),
-        DeviceInfoItem(title: "Model", value: getDeviceModel()),
-        DeviceInfoItem(title: "iOS Version", value: UIDevice.current.systemVersion),
-        DeviceInfoItem(title: "App Version", value: getAppVersion()),
-        DeviceInfoItem(title: "Build Number", value: getBuildNumber()),
-        DeviceInfoItem(title: "Storage Total", value: getTotalStorage()),
-        DeviceInfoItem(title: "Storage Available", value: getAvailableStorage()),
-        DeviceInfoItem(title: "Battery Level", value: getBatteryLevel()),
-        DeviceInfoItem(title: "Jailbreak Status", value: isJailbroken() ? "Jailbroken" : "Not Jailbroken"),
-        DeviceInfoItem(title: "FluxStore ID", value: getFluxStoreID()),
-        DeviceInfoItem(title: "Network Status", value: getNetworkStatus())
-    ]
+    private var deviceInfo: [DeviceInfoItem] = []
     
     private lazy var tableView: UITableView = {
         let tv = UITableView(frame: .zero, style: .insetGrouped)
@@ -53,8 +41,25 @@ class FluxDeviceInfoViewController: UIViewController {
         self.title = NSLocalizedString("Device Info", comment: "")
         self.view.backgroundColor = .altBackground
         
+        setupDeviceInfo()
         setupViews()
         setupNavigationBar()
+    }
+    
+    private func setupDeviceInfo() {
+        deviceInfo = [
+            DeviceInfoItem(title: "Device Name", value: UIDevice.current.name),
+            DeviceInfoItem(title: "Model", value: getDeviceModel()),
+            DeviceInfoItem(title: "iOS Version", value: UIDevice.current.systemVersion),
+            DeviceInfoItem(title: "App Version", value: getAppVersion()),
+            DeviceInfoItem(title: "Build Number", value: getBuildNumber()),
+            DeviceInfoItem(title: "Storage Total", value: getTotalStorage()),
+            DeviceInfoItem(title: "Storage Available", value: getAvailableStorage()),
+            DeviceInfoItem(title: "Battery Level", value: getBatteryLevel()),
+            DeviceInfoItem(title: "Jailbreak Status", value: isJailbroken() ? "Jailbroken" : "Not Jailbroken"),
+            DeviceInfoItem(title: "FluxStore ID", value: getFluxStoreID()),
+            DeviceInfoItem(title: "Network Status", value: getNetworkStatus())
+        ]
     }
     
     private func setupViews() {

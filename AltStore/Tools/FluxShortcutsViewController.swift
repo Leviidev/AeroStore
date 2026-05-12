@@ -170,7 +170,7 @@ extension FluxShortcutsViewController {
 
 // MARK: - INUIAddVoiceShortcutViewControllerDelegate
 extension FluxShortcutsViewController: INUIAddVoiceShortcutViewControllerDelegate {
-    func addVoiceShortcutViewController(_ controller: INUIAddVoiceShortcutViewController, didFinishWith error: Error?) {
+    func addVoiceShortcutViewController(_ controller: INUIAddVoiceShortcutViewController, didFinishWith voiceShortcut: INVoiceShortcut?, error: Error?) {
         controller.dismiss(animated: true) {
             if let error = error {
                 self.showShortcutError(error)
