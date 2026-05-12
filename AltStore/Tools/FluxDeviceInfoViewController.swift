@@ -146,7 +146,11 @@ extension FluxDeviceInfoViewController {
     private func getDeviceModel() -> String {
         var systemInfo = utsname()
         uname(&systemInfo)
-        let modelCode = String(bytes: &systemInfo.machine, encoding: .ascii) ?? "Unknown"
+        let modelCode = withUnsafePointer(to: &systemInfo.machine) {
+            $0.withMemoryRebound(to: CChar.self, capacity: Int(_SYS_NAMELEN)) {
+                ptr in String(cString: ptr)
+            }
+        }
         
         let modelMap: [String: String] = [
             "i386": "Simulator", "x86_64": "Simulator",
@@ -221,7 +225,7 @@ extension FluxDeviceInfoViewController {
     }
     
     private func getFluxStoreID() -> String {
-        return UIDevice.current.identifierForVendor ?? "Unknown"
+        return UIDevice.current.identifierForVendor?.uuidString ?? "Unknown"
     }
     
     private func getNetworkStatus() -> String {

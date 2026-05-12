@@ -141,7 +141,7 @@ class FluxPerformanceViewController: UIViewController {
         let totalSpace = Double.random(in: 50...200)
         let usedSpace = totalSpace * Double.random(in: 0.3...0.8)
         updatedMetrics[2].value = String(format: "%.1f GB", totalSpace - usedSpace)
-        updatedMetrics[2].color = (totalSpace - usedSpace) < 20 ? .systemRed : (totalSpace - usedSpace) < 50 ? .systemYellow : .systemGreen)
+        updatedMetrics[2].color = (totalSpace - usedSpace) < 20 ? .systemRed : ((totalSpace - usedSpace) < 50 ? .systemYellow : .systemGreen)
         
         // Network Speed
         let networkSpeed = Double.random(in: 5...100)
@@ -151,7 +151,11 @@ class FluxPerformanceViewController: UIViewController {
         // Battery Level
         let batteryLevel = Double.random(in: 20...100)
         updatedMetrics[4].value = String(format: "%.0f%%", batteryLevel)
-        updatedMetrics[4].icon = batteryLevel > 20 ? "battery.100" : "battery.25"
+        if batteryLevel > 20 {
+            updatedMetrics[4].icon = "battery.100"
+        } else {
+            updatedMetrics[4].icon = "battery.25"
+        }
         updatedMetrics[4].color = batteryLevel > 50 ? .systemGreen : (batteryLevel > 20 ? .systemYellow : .systemRed)
         
         // App Launch Time
@@ -198,7 +202,7 @@ extension FluxPerformanceViewController: UICollectionViewDelegateFlowLayout {
 // MARK: - Data Models
 struct PerformanceMetric {
     let title: String
-    let icon: String
+    var icon: String
     var value: String
     var color: UIColor
     

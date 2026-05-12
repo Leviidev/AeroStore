@@ -328,6 +328,6 @@ extension UIColor {
 
 extension Scanner {
     func scanHexInt64(_ result: inout UInt64) -> Bool {
-        return scanHexInt64(&result, style: .hex)
+        return scanHexInt64(&result)
     }
 }

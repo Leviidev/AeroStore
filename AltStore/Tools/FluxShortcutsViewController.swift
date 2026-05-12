@@ -151,7 +151,7 @@ extension FluxShortcutsViewController {
         
         if #available(iOS 12.0, *) {
             let shortcut = INShortcut(intent: intent)
-            let viewController = INUIAddVoiceShortcutViewController(shortcut: shortcut)
+            let viewController = INUIAddVoiceShortcutViewController(shortcut: shortcut!)
             viewController.delegate = self
             
             present(viewController, animated: true)
