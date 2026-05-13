@@ -212,28 +212,7 @@ extension LaunchViewController {
     func finishLaunching() async {
         guard !didFinishLaunching else { return }
         didFinishLaunching = true
-        
-        AppManager.shared.update()
-        AppManager.shared.updateAllSources { result in
-            guard case .failure(let error) = result else { return }
-            Logger.main.error("Failed to update sources on launch. \(error.localizedDescription, privacy: .public)")
-            
-            
-            let errorDesc = ErrorProcessing(.fullError).getDescription(error: error as NSError)
-            print("Failed to update sources on launch. \(errorDesc)")
-            
-            var mode: ToastView.InfoMode = .fullError
-            if String(describing: error).contains("The Internet connection appears to be offline"){
-                mode = .localizedDescription    // dont make noise!
-            }
-            let toastView = ToastView(error: error, mode: mode)
-            toastView.addTarget(self.destinationViewController, action: #selector(TabBarController.presentSources), for: .touchUpInside)
-            toastView.show(in: self.destinationViewController!.selectedViewController ?? self.destinationViewController!)
-        }
-        updateKnownSources()
-        WidgetCenter.shared.reloadAllTimelines()
-        didFinishLaunching = true
-        
+
         let destinationVC = destinationViewController!
         
         let elapsed = abs(startTime.timeIntervalSinceNow)
@@ -263,6 +242,34 @@ extension LaunchViewController {
         } completion: { _ in
             self.splashView.removeFromSuperview()
             self.destinationViewController = destinationVC
+            self.runDeferredLaunchWork()
+        }
+    }
+
+    func runDeferredLaunchWork() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            AppManager.shared.update()
+            AppManager.shared.updateAllSources { result in
+                guard case .failure(let error) = result else { return }
+                Logger.main.error("Failed to update sources on launch. \(error.localizedDescription, privacy: .public)")
+
+                let errorDesc = ErrorProcessing(.fullError).getDescription(error: error as NSError)
+                print("Failed to update sources on launch. \(errorDesc)")
+
+                var mode: ToastView.InfoMode = .fullError
+                if String(describing: error).contains("The Internet connection appears to be offline") {
+                    mode = .localizedDescription
+                }
+
+                let toastView = ToastView(error: error, mode: mode)
+                toastView.addTarget(self.destinationViewController, action: #selector(TabBarController.presentSources), for: .touchUpInside)
+
+                guard let destinationViewController = self.destinationViewController else { return }
+                toastView.show(in: destinationViewController.selectedViewController ?? destinationViewController)
+            }
+
+            self.updateKnownSources()
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 
