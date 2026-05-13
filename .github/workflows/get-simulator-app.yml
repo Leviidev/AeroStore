@@ -10,7 +10,7 @@ on:
       simulator_os:
         description: "Simulator OS version"
         required: true
-        default: "26.0"
+        default: "26.4"
       launch_app:
         description: "Install and launch in simulator after building"
         required: true
@@ -93,15 +93,27 @@ jobs:
 
           name = os.environ["SIMULATOR_NAME"]
           version = os.environ["SIMULATOR_OS"]
-          runtime_suffix = "iOS-" + version.replace(".", "-")
+          requested_major = version.split(".", 1)[0]
+          exact_runtime_suffix = "iOS-" + version.replace(".", "-")
+          major_runtime_prefix = "com.apple.CoreSimulator.SimRuntime.iOS-" + requested_major + "-"
           devices = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "--json"]))
 
-          matches = []
+          exact_matches = []
+          major_matches = []
           for runtime, runtime_devices in devices.get("devices", {}).items():
-              if not runtime.endswith(runtime_suffix):
+              runtime_matches_exact = runtime.endswith(exact_runtime_suffix)
+              runtime_matches_major = runtime.startswith(major_runtime_prefix)
+              if not runtime_matches_exact and not runtime_matches_major:
                   continue
-              matches.extend(device for device in runtime_devices if device.get("name") == name and device.get("isAvailable"))
+              for device in runtime_devices:
+                  if device.get("name") != name or not device.get("isAvailable"):
+                      continue
+                  if runtime_matches_exact:
+                      exact_matches.append((runtime, device))
+                  else:
+                      major_matches.append((runtime, device))
 
+          matches = exact_matches or sorted(major_matches, reverse=True)
           if not matches:
               print(f"::error::No available simulator named {name!r} for iOS {version}.", file=sys.stderr)
               print("Available devices:", file=sys.stderr)
@@ -113,7 +125,10 @@ jobs:
                           print(f"  {runtime}: {device.get('name')} ({device.get('udid')})", file=sys.stderr)
               sys.exit(1)
 
-          print(f"udid={matches[0]['udid']}")
+          runtime, device = matches[0]
+          if not exact_matches:
+              print(f"::notice::No exact iOS {version} runtime found; using {runtime}.", file=sys.stderr)
+          print(f"udid={device['udid']}")
           PY
         env:
           SIMULATOR_NAME: ${{ inputs.simulator_name }}
