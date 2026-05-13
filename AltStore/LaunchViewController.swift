@@ -30,9 +30,22 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        splashView = SplashView(frame: view.bounds, appName: Bundle.main.altAppDisplayName)
-        destinationViewController = storyboard!.instantiateViewController(withIdentifier: "tabBarController") as? TabBarController
-        view.addSubview(splashView)
+        do {
+            print("⏳ LaunchViewController viewDidLoad: Creating SplashView...")
+            splashView = SplashView(frame: view.bounds, appName: Bundle.main.altAppDisplayName)
+            print("✅ SplashView created")
+            
+            print("⏳ LaunchViewController viewDidLoad: Instantiating TabBarController...")
+            destinationViewController = storyboard!.instantiateViewController(withIdentifier: "tabBarController") as? TabBarController
+            print("✅ TabBarController instantiated")
+            
+            print("⏳ LaunchViewController viewDidLoad: Adding splash view to view hierarchy...")
+            view.addSubview(splashView)
+            print("✅ Splash view added to hierarchy")
+        } catch {
+            print("❌ Error in viewDidLoad: \(error)")
+            handleFatalError(error)
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -46,61 +59,88 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
     }
 
     private func runLaunchSequence() async {
-        guard retries < maxRetries else { return }
+        guard retries < maxRetries else {
+            print("❌ Launch sequence failed after \(maxRetries) retries")
+            return
+        }
         retries += 1
 
         await Task.detached {
+            print("⏳ Launch sequence running (attempt \(self.retries) of \(self.maxRetries))...")
             if !DatabaseManager.shared.isStarted {
                 await withCheckedContinuation { continuation in
                     DatabaseManager.shared.start { error in
                         if let error {
+                            print("❌ DatabaseManager failed to start: \(error)")
                             Task { await self.handleLaunchError(error, retryCallback: self.runLaunchSequence) }
                         } else {
+                            print("✅ DatabaseManager started successfully")
                             Task { await self.finishLaunching() }
                         }
                         continuation.resume(returning: ())
                     }
                 }
             } else {
+                print("✅ DatabaseManager already started")
                 await self.finishLaunching()
             }
         }.value
     }
 
     private func doPostLaunch() {
-        SideJITManager.shared.checkAndPromptIfNeeded(presentingVC: self)
-        if #available(iOS 17, *), UserDefaults.standard.sidejitenable {
-            DispatchQueue.global().async { SideJITManager.shared.askForNetwork() }
-            print("SideJITServer Enabled")
-        }
+        do {
+            print("⏳ Running post-launch tasks...")
+            SideJITManager.shared.checkAndPromptIfNeeded(presentingVC: self)
+            if #available(iOS 17, *), UserDefaults.standard.sidejitenable {
+                DispatchQueue.global().async { SideJITManager.shared.askForNetwork() }
+                print("SideJITServer Enabled")
+            }
 
-        #if !targetEnvironment(simulator)
-        
-        detectAndImportAccountFile()
-        
-        if UserDefaults.standard.enableEMPforWireguard {
-            startEMProxy(bind_addr: AppConstants.Proxy.serverURL)
+            #if !targetEnvironment(simulator)
+            
+            print("⏳ Detecting account file...")
+            detectAndImportAccountFile()
+            
+            if UserDefaults.standard.enableEMPforWireguard {
+                print("⏳ Starting EM Proxy...")
+                startEMProxy(bind_addr: AppConstants.Proxy.serverURL)
+                print("✅ EM Proxy started")
+            }
+            if let pf = fetchPairingFile() {
+                print("⏳ Pairing file found, starting minimuxer threads...")
+                UserDefaults.standard.set(false, forKey: fluxPreviewWithoutPairingKey)
+                start_minimuxer_threads(pf)
+            }
+            // No pairing yet: first-run alert + document picker is already shown by PairingFileManager.
+            // User can dismiss the picker to browse in preview mode (no refresh/install until pairing exists).
+            #endif
+            print("✅ Post-launch tasks completed")
+        } catch {
+            print("❌ Error in doPostLaunch: \(error)")
         }
-        if let pf = fetchPairingFile() {
-            UserDefaults.standard.set(false, forKey: fluxPreviewWithoutPairingKey)
-            start_minimuxer_threads(pf)
-        }
-        // No pairing yet: first-run alert + document picker is already shown by PairingFileManager.
-        // User can dismiss the picker to browse in preview mode (no refresh/install until pairing exists).
-        #endif
     }
 
     func start_minimuxer_threads(_ pairing_file: String) {
-        retargetUsbmuxdAddr()
-        let documentsDirectory = FileManager.default.documentsDirectory.absoluteString
         do {
+            print("⏳ Starting minimuxer threads...")
+            retargetUsbmuxdAddr()
+            let documentsDirectory = FileManager.default.documentsDirectory.absoluteString
             let loggingEnabled = UserDefaults.standard.isMinimuxerConsoleLoggingEnabled
             try minimuxerStartWithLogger(pairing_file, documentsDirectory, loggingEnabled)
+            print("✅ Minimuxer threads started")
         } catch {
-            try! FileManager.default.removeItem(at: FileManager.default.documentsDirectory.appendingPathComponent(pairingFileName))
-            displayError(String(format: NSLocalizedString("minimuxer failed to start, please restart %@. %@", comment: ""), Bundle.main.altAppDisplayName, (error as? LocalizedError)?.failureReason ?? "UNKNOWN ERROR"))
+            print("❌ Minimuxer failed to start: \(error)")
+            try? FileManager.default.removeItem(at: FileManager.default.documentsDirectory.appendingPathComponent(pairingFileName))
+            displayError(String(format: NSLocalizedString("minimuxer failed to start, please restart %@. %@", comment: ""), Bundle.main.altAppDisplayName, (error as? LocalizedError)?.failureReason ?? error.localizedDescription))
         }
-        startAutoMounter(documentsDirectory)
+        do {
+            print("⏳ Starting auto mounter...")
+            let documentsDirectory = FileManager.default.documentsDirectory.absoluteString
+            startAutoMounter(documentsDirectory)
+            print("✅ Auto mounter started")
+        } catch {
+            print("❌ Auto mounter failed to start: \(error)")
+        }
     }
 
     func fetchPairingFile() -> String? { PairingFileManager.shared.fetchPairingFile(presentingVC: self) }
@@ -146,7 +186,7 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
         let host = destinationViewController ?? self
         let toast = ToastView(
             text: NSLocalizedString("Browsing without pairing", comment: ""),
-            detailText: NSLocalizedString("Add a pairing file in Settings when you’re ready to install, refresh, or use device features.", comment: "")
+            detailText: NSLocalizedString("Add a pairing file in Settings when you're ready to install, refresh, or use device features.", comment: "")
         )
         toast.show(in: host)
     }
@@ -171,10 +211,10 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
         if let altCert = ALTCertificate(p12Data: account.cert, password: account.certpass) {
             Keychain.shared.signingCertificate = altCert.encryptedP12Data(withPassword: "")!
             Keychain.shared.signingCertificatePassword = account.certpass
-            let toastView = ToastView(text: NSLocalizedString("Successfully imported '\(account.email)'!", comment: ""), detailText: String(format: NSLocalizedString("%@ should be fully operational!", comment: ""), Bundle.main.altAppDisplayName))
+            let toastView = ToastView(text: NSLocalizedString("Successfully imported '\(account.email)'!", comment: ""), detailText: String(format: NSLocalizedString("%@ should be fully operational now.", comment: ""), Bundle.main.altAppDisplayName))
             return toastView.show(in: self)
         } else {
-            let toastView = ToastView(text: NSLocalizedString("Failed to import account certificate!", comment: ""), detailText: "Failed to create ALTCertificate. Check if the password is correct. Still imported account/adi.pb details!")
+            let toastView = ToastView(text: NSLocalizedString("Failed to import account certificate!", comment: ""), detailText: NSLocalizedString("Failed to create ALTCertificate. Check if the password is correct.", comment: ""))
             return toastView.show(in: self)
         }
     }
@@ -186,6 +226,11 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
         #else
         importAccountAtFile(accountFileURL)
         #endif
+    }
+    
+    private func handleFatalError(_ error: Error) {
+        print("🔴 FATAL ERROR: \(error)")
+        print("Stack trace: \(Thread.callStackSymbols)")
     }
 }
 
@@ -213,70 +258,93 @@ extension LaunchViewController {
         guard !didFinishLaunching else { return }
         didFinishLaunching = true
 
-        let destinationVC = destinationViewController!
-        
-        let elapsed = abs(startTime.timeIntervalSinceNow)
-        let remaining = elapsed >= 1 ? 0 : 1 - elapsed
-        try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
-        
-        destinationVC.loadViewIfNeeded()
-        addChild(destinationVC)
-        destinationVC.view.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(destinationVC.view)
-        destinationVC.didMove(toParent: self)
-        
-        // Pin edges BEFORE animation
-        NSLayoutConstraint.activate([
-            destinationVC.view.topAnchor.constraint(equalTo: view.topAnchor),
-            destinationVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            destinationVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            destinationVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
+        do {
+            print("⏳ finishLaunching: Getting destination view controller...")
+            let destinationVC = destinationViewController!
+            
+            print("⏳ finishLaunching: Calculating animation duration...")
+            let elapsed = abs(startTime.timeIntervalSinceNow)
+            let remaining = elapsed >= 1 ? 0 : 1 - elapsed
+            try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
+            
+            print("⏳ finishLaunching: Loading destination view controller...")
+            destinationVC.loadViewIfNeeded()
+            
+            print("⏳ finishLaunching: Setting up view hierarchy...")
+            addChild(destinationVC)
+            destinationVC.view.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(destinationVC.view)
+            destinationVC.didMove(toParent: self)
+            
+            // Pin edges BEFORE animation
+            print("⏳ finishLaunching: Activating constraints...")
+            NSLayoutConstraint.activate([
+                destinationVC.view.topAnchor.constraint(equalTo: view.topAnchor),
+                destinationVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+                destinationVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                destinationVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            ])
 
-        // Set initial alpha for fade-in
-        destinationVC.view.alpha = 0
+            // Set initial alpha for fade-in
+            destinationVC.view.alpha = 0
 
-        UIView.transition(with: view, duration: 0.3, options: .transitionCrossDissolve) { [self] in
-            self.splashView.alpha = 0
-            destinationVC.view.alpha = 1
-        } completion: { _ in
-            self.splashView.removeFromSuperview()
-            self.destinationViewController = destinationVC
-            self.runDeferredLaunchWork()
+            print("⏳ finishLaunching: Starting transition animation...")
+            UIView.transition(with: view, duration: 0.3, options: .transitionCrossDissolve) { [self] in
+                self.splashView.alpha = 0
+                destinationVC.view.alpha = 1
+            } completion: { _ in
+                print("✅ finishLaunching: Transition complete")
+                self.splashView.removeFromSuperview()
+                self.destinationViewController = destinationVC
+                self.runDeferredLaunchWork()
+            }
+        } catch {
+            print("❌ Error in finishLaunching: \(error)")
+            handleFatalError(error)
         }
     }
 
     func runDeferredLaunchWork() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            AppManager.shared.update()
-            AppManager.shared.updateAllSources { result in
-                guard case .failure(let error) = result else { return }
-                Logger.main.error("Failed to update sources on launch. \(error.localizedDescription, privacy: .public)")
+            do {
+                print("⏳ Running deferred launch work...")
+                AppManager.shared.update()
+                AppManager.shared.updateAllSources { result in
+                    guard case .failure(let error) = result else {
+                        print("✅ Sources updated successfully")
+                        return
+                    }
+                    print("❌ Failed to update sources on launch: \(error.localizedDescription)")
+                    Logger.main.error("Failed to update sources on launch. \(error.localizedDescription, privacy: .public)")
 
-                let errorDesc = ErrorProcessing(.fullError).getDescription(error: error as NSError)
-                print("Failed to update sources on launch. \(errorDesc)")
+                    let errorDesc = ErrorProcessing(.fullError).getDescription(error: error as NSError)
+                    print("Failed to update sources on launch. \(errorDesc)")
 
-                var mode: ToastView.InfoMode = .fullError
-                if String(describing: error).contains("The Internet connection appears to be offline") {
-                    mode = .localizedDescription
+                    var mode: ToastView.InfoMode = .fullError
+                    if String(describing: error).contains("The Internet connection appears to be offline") {
+                        mode = .localizedDescription
+                    }
+
+                    let toastView = ToastView(error: error, mode: mode)
+                    toastView.addTarget(self.destinationViewController, action: #selector(TabBarController.presentSources), for: .touchUpInside)
+
+                    guard let destinationViewController = self.destinationViewController else { return }
+                    toastView.show(in: destinationViewController.selectedViewController ?? destinationViewController)
                 }
 
-                let toastView = ToastView(error: error, mode: mode)
-                toastView.addTarget(self.destinationViewController, action: #selector(TabBarController.presentSources), for: .touchUpInside)
-
-                guard let destinationViewController = self.destinationViewController else { return }
-                toastView.show(in: destinationViewController.selectedViewController ?? destinationViewController)
+                self.updateKnownSources()
+                WidgetCenter.shared.reloadAllTimelines()
+            } catch {
+                print("❌ Error in runDeferredLaunchWork: \(error)")
             }
-
-            self.updateKnownSources()
-            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 
     func updateKnownSources() {
         AppManager.shared.updateKnownSources { result in
             switch result {
-            case .failure(let error): print("[ALTLog] Failed to update known sources:", error)
+            case .failure(let error):
+                print("❌ Failed to update known sources: \(error)")
             case .success((_, let blockedSources)):
                 DatabaseManager.shared.persistentContainer.performBackgroundTask { context in
                     let blockedSourceIDs = Set(blockedSources.lazy.map { $0.identifier })
@@ -289,7 +357,7 @@ extension LaunchViewController {
                     guard !sourceErrors.isEmpty else { return }
                     Task {
                         for error in sourceErrors {
-                            let title = String(format: NSLocalizedString("“%@” Blocked", comment: ""), error.$source.name)
+                            let title = String(format: NSLocalizedString(""%@" Blocked", comment: ""), error.$source.name)
                             let message = [error.localizedDescription, error.recoverySuggestion].compactMap { $0 }.joined(separator: "\n\n")
                             await self.presentAlert(title: title, message: message)
                         }
