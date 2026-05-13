@@ -71,7 +71,16 @@ public extension Bundle
     }
     
     var altstoreAppGroup: String? {
-        self.appGroups.first { $0.contains(Bundle.baseAltStoreAppGroupID) }
+        guard let appGroup = self.appGroups.first(where: { $0.contains(Bundle.baseAltStoreAppGroupID) }) else {
+            return nil
+        }
+
+        // If the group cannot be opened on-device, treat it as unavailable so startup can fall back safely.
+        guard UserDefaults(suiteName: appGroup) != nil else {
+            return nil
+        }
+
+        return appGroup
     }
 
     /// User-visible app name from Info.plist (matches home screen label).

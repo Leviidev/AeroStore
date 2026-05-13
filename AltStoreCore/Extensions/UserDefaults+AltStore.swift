@@ -13,8 +13,7 @@ public extension UserDefaults
     static let shared: UserDefaults = {
         guard let appGroup = Bundle.main.altstoreAppGroup else { return .standard }
         
-        let sharedUserDefaults = UserDefaults(suiteName: appGroup)!
-        return sharedUserDefaults
+        return UserDefaults(suiteName: appGroup) ?? .standard
     }()
     
     @NSManaged var firstLaunch: Date?
