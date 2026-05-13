@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import AltSign
 
 public extension Bundle
 {
@@ -72,6 +73,13 @@ public extension Bundle
     
     var altstoreAppGroup: String? {
         guard let appGroup = self.appGroups.first(where: { $0.contains(Bundle.baseAltStoreAppGroupID) }) else {
+            return nil
+        }
+
+        guard let application = ALTApplication(fileURL: self.bundleURL),
+              let signedAppGroups = application.entitlements[.appGroups] as? [String],
+              signedAppGroups.contains(appGroup)
+        else {
             return nil
         }
 
