@@ -46,6 +46,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool
     {
+        // Set up exception handler to log crashes
+        NSSetUncaughtExceptionHandler { exception in
+            print("🔴 UNCAUGHT EXCEPTION: \(exception)")
+            print("Call stack: \(exception.callStackSymbols)")
+        }
+        
         // navigation bar buttons spacing is too much (so hack it to use minimal spacing)
         // this is swift-5 specific behavior and might change
         // https://stackoverflow.com/a/64988363/11971304
@@ -67,93 +73,199 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 //        UserDefaults.standard.setValue(true, forKey: "com.apple.CoreData.SQLDebug")
 
         // Register default settings before doing anything else.
-        UserDefaults.registerDefaults()
-        UserDefaults.standard.register(defaults: [FluxAppearancePreference.storageKey: FluxAppearancePreference.light.rawValue])
+        do {
+            UserDefaults.registerDefaults()
+            UserDefaults.standard.register(defaults: [FluxAppearancePreference.storageKey: FluxAppearancePreference.light.rawValue])
+            print("✅ UserDefaults registered successfully")
+        } catch {
+            print("❌ Failed to register UserDefaults: \(error)")
+        }
 
-        FluxStikJITHostBootstrap.prepareIntegrations()
+        // Prepare integrations with error handling
+        do {
+            print("⏳ Preparing FluxStikJIT integrations...")
+            FluxStikJITHostBootstrap.prepareIntegrations()
+            print("✅ FluxStikJIT integrations prepared")
+        } catch {
+            print("❌ Failed to prepare FluxStikJIT integrations: \(error)")
+            // Continue anyway - this is not fatal
+        }
 
         // Recreate Database if requested
         // NOTE: Userdefaults are local to the FluxStore.app sandbox and are not shared
-        if UserDefaults.standard.recreateDatabaseOnNextStart{
-            // reset the state
-            UserDefaults.standard.recreateDatabaseOnNextStart = false
-            
-            // re-create database
-            DatabaseManager.recreateDatabase()
+        do {
+            if UserDefaults.standard.recreateDatabaseOnNextStart{
+                print("⏳ Recreating database as requested...")
+                // reset the state
+                UserDefaults.standard.recreateDatabaseOnNextStart = false
+                
+                // re-create database
+                DatabaseManager.recreateDatabase()
+                print("✅ Database recreated")
+            }
+        } catch {
+            print("❌ Failed to recreate database: \(error)")
         }
         
+        // Start DatabaseManager with timeout
+        print("⏳ Starting DatabaseManager...")
+        let databaseStartGroup = DispatchGroup()
+        databaseStartGroup.enter()
+        var databaseStartError: Error? = nil
         
         DatabaseManager.shared.start { (error) in
             if let error = error
             {
-                print("Failed to start DatabaseManager. Error:", error as Any)
+                print("❌ Failed to start DatabaseManager. Error: \(error)")
+                databaseStartError = error
             }
             else
             {
-                print("Started DatabaseManager.")
+                print("✅ DatabaseManager started successfully")
             }
+            databaseStartGroup.leave()
         }
         
-        self.setTintColor()
-        self.prepareImageCache()
+        // Wait for database to start with a timeout
+        let timeoutResult = databaseStartGroup.wait(timeout: .now() + 10.0)
+        if timeoutResult == .timedOut {
+            print("❌ DatabaseManager startup timed out!")
+        }
+        
+        if databaseStartError != nil {
+            print("⚠️ DatabaseManager failed to start, but continuing...")
+        }
+        
+        do {
+            print("⏳ Setting tint color and image cache...")
+            self.setTintColor()
+            self.prepareImageCache()
+            print("✅ Tint color and image cache configured")
+        } catch {
+            print("❌ Failed to configure appearance: \(error)")
+        }
 
         DispatchQueue.main.async {
-            FluxAppearancePreference.applyToAllWindows()
+            do {
+                print("⏳ Applying appearance preferences...")
+                FluxAppearancePreference.applyToAllWindows()
+                print("✅ Appearance preferences applied")
+            } catch {
+                print("❌ Failed to apply appearance preferences: \(error)")
+            }
         }
 
         // TODO: @mahee96: find if we need to start em_proxy as in altstore?
-        if UserDefaults.standard.enableEMPforWireguard {
-            startEMProxy(bind_addr: AppConstants.Proxy.serverURL)
+        do {
+            if UserDefaults.standard.enableEMPforWireguard {
+                print("⏳ Starting EM Proxy...")
+                startEMProxy(bind_addr: AppConstants.Proxy.serverURL)
+                print("✅ EM Proxy started")
+            }
+        } catch {
+            print("❌ Failed to start EM Proxy: \(error)")
         }
 
-        SecureValueTransformer.register()        
-        
-        if UserDefaults.standard.firstLaunch == nil
-        {
-            Keychain.shared.reset()
-            UserDefaults.standard.firstLaunch = Date()
+        do {
+            print("⏳ Registering SecureValueTransformer...")
+            SecureValueTransformer.register()
+            print("✅ SecureValueTransformer registered")
+        } catch {
+            print("❌ Failed to register SecureValueTransformer: \(error)")
         }
         
-        UserDefaults.standard.preferredServerID = Bundle.main.object(forInfoDictionaryKey: Bundle.Info.serverID) as? String
+        do {
+            print("⏳ Checking first launch...")
+            if UserDefaults.standard.firstLaunch == nil
+            {
+                print("⏳ First launch detected, resetting keychain...")
+                Keychain.shared.reset()
+                UserDefaults.standard.firstLaunch = Date()
+                print("✅ Keychain reset for first launch")
+            } else {
+                print("✅ Not first launch, skipping keychain reset")
+            }
+        } catch {
+            print("❌ Failed to handle first launch: \(error)")
+            // Continue anyway - this is not fatal
+        }
+        
+        do {
+            print("⏳ Setting preferred server ID...")
+            UserDefaults.standard.preferredServerID = Bundle.main.object(forInfoDictionaryKey: Bundle.Info.serverID) as? String
+            print("✅ Preferred server ID set")
+        } catch {
+            print("❌ Failed to set preferred server ID: \(error)")
+        }
         
         #if DEBUG && targetEnvironment(simulator)
-        UserDefaults.standard.isDebugModeEnabled = true
+        do {
+            print("⏳ Enabling debug mode for simulator...")
+            UserDefaults.standard.isDebugModeEnabled = true
+            print("✅ Debug mode enabled")
+        } catch {
+            print("❌ Failed to enable debug mode: \(error)")
+        }
         #endif
         
-        self.prepareForBackgroundFetch()
+        do {
+            print("⏳ Preparing for background fetch...")
+            self.prepareForBackgroundFetch()
+            print("✅ Background fetch prepared")
+        } catch {
+            print("❌ Failed to prepare for background fetch: \(error)")
+        }
+        
+        print("===================================================")
+        print("|            App Launch Complete                  |")
+        print("===================================================\n")
         
         return true
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        FluxStikJITHostBootstrap.onAppDidBecomeActive()
+        do {
+            print("⏳ App did become active...")
+            FluxStikJITHostBootstrap.onAppDidBecomeActive()
+            print("✅ App became active")
+        } catch {
+            print("❌ Error in applicationDidBecomeActive: \(error)")
+        }
     }
 
     func applicationDidEnterBackground(_ application: UIApplication)
     {
         // Make sure to update SceneDelegate.sceneDidEnterBackground() as well.
         // TODO: @mahee96: find if we need to stop em_proxy as in altstore?
-        if UserDefaults.standard.enableEMPforWireguard {
-            stopEMProxy()
-        }
-        guard let oneMonthAgo = Calendar.current.date(byAdding: .month, value: -1, to: Date()) else { return }
-        
-        let midnightOneMonthAgo = Calendar.current.startOfDay(for: oneMonthAgo)
-        DatabaseManager.shared.purgeLoggedErrors(before: midnightOneMonthAgo) { result in
-            switch result
-            {
-            case .success: break
-            case .failure(let error): print("[ALTLog] Failed to purge logged errors before \(midnightOneMonthAgo).", error)
+        do {
+            if UserDefaults.standard.enableEMPforWireguard {
+                stopEMProxy()
             }
+            guard let oneMonthAgo = Calendar.current.date(byAdding: .month, value: -1, to: Date()) else { return }
+            
+            let midnightOneMonthAgo = Calendar.current.startOfDay(for: oneMonthAgo)
+            DatabaseManager.shared.purgeLoggedErrors(before: midnightOneMonthAgo) { result in
+                switch result
+                {
+                case .success: break
+                case .failure(let error): print("[ALTLog] Failed to purge logged errors before \(midnightOneMonthAgo).", error)
+                }
+            }
+        } catch {
+            print("❌ Error in applicationDidEnterBackground: \(error)")
         }
              
     }
 
     func applicationWillEnterForeground(_ application: UIApplication)
     {
-        AppManager.shared.update()
-        if UserDefaults.standard.enableEMPforWireguard {
-            startEMProxy(bind_addr: AppConstants.Proxy.serverURL)
+        do {
+            AppManager.shared.update()
+            if UserDefaults.standard.enableEMPforWireguard {
+                startEMProxy(bind_addr: AppConstants.Proxy.serverURL)
+            }
+        } catch {
+            print("❌ Error in applicationWillEnterForeground: \(error)")
         }
     }
     
