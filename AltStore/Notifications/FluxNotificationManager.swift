@@ -30,11 +30,21 @@ struct FluxNotification {
         self.date = date
         self.isRead = isRead
     }
+
+    init(id: String = UUID().uuidString, title: String, body: String, category: FluxNotificationCategory, userInfo: [String: Any] = [:], date: Date = Date(), isRead: Bool = false) {
+        self.init(id: id, title: title, message: body, category: category, userInfo: userInfo, date: date, isRead: isRead)
+    }
+
+    var body: String {
+        message
+    }
 }
 
 enum FluxNotificationCategory {
     case appUpdate
     case refreshReminder
+    case certificateWarning
+    case jitStatus
     case system
     case general
     
@@ -44,6 +54,10 @@ enum FluxNotificationCategory {
             return NSLocalizedString("App Update", comment: "")
         case .refreshReminder:
             return NSLocalizedString("Refresh Reminder", comment: "")
+        case .certificateWarning:
+            return NSLocalizedString("Certificate Warning", comment: "")
+        case .jitStatus:
+            return NSLocalizedString("JIT Status", comment: "")
         case .system:
             return NSLocalizedString("System", comment: "")
         case .general:
@@ -57,6 +71,10 @@ enum FluxNotificationCategory {
             return "arrow.up.circle.fill"
         case .refreshReminder:
             return "clock.circle.fill"
+        case .certificateWarning:
+            return "exclamationmark.triangle.fill"
+        case .jitStatus:
+            return "bolt.circle.fill"
         case .system:
             return "gear.circle.fill"
         case .general:
@@ -70,6 +88,10 @@ enum FluxNotificationCategory {
             return .systemBlue
         case .refreshReminder:
             return .systemOrange
+        case .certificateWarning:
+            return .systemYellow
+        case .jitStatus:
+            return .systemTeal
         case .system:
             return .systemGray
         case .general:
@@ -92,7 +114,7 @@ class FluxNotificationManager: NSObject {
     
     // MARK: - Permission Management
     
-    func requestAuthorization() async {
+    func requestAuthorization() async -> Bool {
         return await withCheckedContinuation { continuation in
             notificationCenter.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
                 continuation.resume(returning: granted)

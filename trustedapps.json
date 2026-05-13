@@ -114,6 +114,12 @@
       "sourceURL": "https://raw.githubusercontent.com/delia-cheminot/mona-hrt/refs/heads/main/ios_source.json",
       "displayName": "Mona companion",
       "tagline": "Companion catalog for Mona."
+    },
+    {
+      "identifier": "com.flux.fluxstore.source",
+      "sourceURL": "https://raw.githubusercontent.com/FluxStore-App/FluxStore/main/FluxStore.source.json",
+      "displayName": "FluxStore",
+      "tagline": "Official FluxStore source."
     }
   ],
   "trusted": [

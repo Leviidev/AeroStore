@@ -1,0 +1,42 @@
+{
+  "name": "FluxStore",
+  "identifier": "com.flux.fluxstore.source",
+  "website": "https://github.com/FluxStore-App/FluxStore",
+  "subtitle": "Official FluxStore source.",
+  "description": "FluxStore is a community-driven sideloading app for non-jailbroken iOS devices.\n\nIt resigns apps with your personal development certificate and supports FluxStore-specific local JIT workflows.",
+  "tintColor": "#0784FC",
+  "iconURL": "https://raw.githubusercontent.com/FluxStore-App/FluxStore/main/AltStore/Resources/Icons.xcassets/AppIcon.appiconset/1024.png",
+  "headerURL": "https://raw.githubusercontent.com/FluxStore-App/FluxStore/main/AltStore/Resources/Icons.xcassets/AppIcon.appiconset/1024.png",
+  "apps": [
+    {
+      "beta": false,
+      "name": "FluxStore",
+      "bundleIdentifier": "com.flux.fluxstore",
+      "developerName": "FluxStore Team",
+      "subtitle": "Sideload apps with your Apple ID.",
+      "version": "1.0.7",
+      "versionDate": "2026-05-13T00:00:00Z",
+      "versionDescription": "FluxStore v1.0.7",
+      "downloadURL": "https://github.com/FluxStore-App/FluxStore/releases/download/v1.0.7/FluxStore.ipa",
+      "localizedDescription": "FluxStore is a community-driven sideloading app for non-jailbroken iOS devices.",
+      "iconURL": "https://raw.githubusercontent.com/FluxStore-App/FluxStore/main/AltStore/Resources/Icons.xcassets/AppIcon.appiconset/1024.png",
+      "tintColor": "#0784FC",
+      "category": "utilities",
+      "size": 73400320,
+      "screenshotURLs": [
+      ],
+      "versions": [
+        {
+          "version": "1.0.7",
+          "date": "2026-05-13T00:00:00Z",
+          "localizedDescription": "FluxStore v1.0.7",
+          "downloadURL": "https://github.com/FluxStore-App/FluxStore/releases/download/v1.0.7/FluxStore.ipa",
+          "size": 73400320
+        }
+      ],
+      "commit": "v1.0.7",
+      "headline": "FluxStore v1.0.7"
+    }
+  ],
+  "news": []
+}
