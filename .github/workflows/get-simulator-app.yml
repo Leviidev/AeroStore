@@ -165,6 +165,9 @@ jobs:
           if [[ "$XC" -ne 0 ]]; then
             echo "::error::xcodebuild simulator build failed (exit $XC). First compiler/driver errors:"
             grep -E " error: |fatal error:" "$LOG" | head -120 || true
+            echo "::group::Linker context"
+            grep -n -E "Undefined symbols|ld:|clang: error|duplicate symbol|symbol\\(s\\) not found|Ld " "$LOG" | head -200 || true
+            echo "::endgroup::"
             exit "$XC"
           fi
 
