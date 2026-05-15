@@ -114,8 +114,7 @@ final class TabBarController: UITabBarController
             toolsNavigationController.tabBarItem.image = UIImage(systemName: "wrench.and.screwdriver.fill")
 
             let settingsStoryboard = UIStoryboard(name: "Settings", bundle: nil)
-            let settingsViewController = settingsStoryboard.instantiateInitialViewController()!
-            let settingsNavigationController = UINavigationController(rootViewController: settingsViewController)
+            let settingsNavigationController = settingsStoryboard.instantiateInitialViewController() as! UINavigationController
             settingsNavigationController.navigationBar.prefersLargeTitles = true
             settingsNavigationController.tabBarItem.title = NSLocalizedString("Settings", comment: "")
             settingsNavigationController.tabBarItem.image = UIImage(systemName: "gearshape.fill")
