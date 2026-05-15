@@ -104,6 +104,7 @@ extension SettingsViewController
         case operationsLoggingControl
         case recreateDatabase
         case minimuxerConsoleLogging
+        case minimuxerStatusCheck
     }
 }
 
@@ -1149,6 +1150,22 @@ extension SettingsViewController
         
         return cell
     }
+
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let section = Section.allCases[indexPath.section]
+        if section == .advancedSettings, indexPath.row == AdvancedSettingsRow.allCases.count {
+            return UITableView.automaticDimension
+        }
+        return super.tableView(tableView, heightForRowAt: indexPath)
+    }
+
+    override func tableView(_ tableView: UITableView, indentationLevelForRowAt indexPath: IndexPath) -> Int {
+        let section = Section.allCases[indexPath.section]
+        if section == .advancedSettings, indexPath.row == AdvancedSettingsRow.allCases.count {
+            return 0
+        }
+        return super.tableView(tableView, indentationLevelForRowAt: indexPath)
+    }
     
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView?
     {
@@ -1739,7 +1756,7 @@ extension SettingsViewController
                 let segue = UIStoryboardSegue(identifier: "operationsLoggingControl", source: self, destination: operationsLoggingController)
                 self.present(segue.destination, animated: true, completion: nil)
                 
-            case .responseCaching, .exportResignedApp, .verboseOperationsLogging, .minimuxerConsoleLogging, .recreateDatabase : break
+            case .responseCaching, .exportResignedApp, .verboseOperationsLogging, .minimuxerConsoleLogging, .recreateDatabase, .minimuxerStatusCheck : break
             }
             
             
