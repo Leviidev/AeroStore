@@ -20,12 +20,12 @@ let pairingFileName = "ALTPairingFile.mobiledevicepairing"
 /// Set when the user continues without a device pairing file (browse/install blocked until pairing is added).
 private let aeroPreviewWithoutPairingKey = "AeroStore.previewWithoutDevicePairing"
 
-final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
+final class LaunchViewController: UIViewController {
     private var didFinishLaunching = false
     private var retries = 0
     private var maxRetries = 3
     private var splashView: SplashView!
-    fileprivate var destinationViewController: TabBarController?
+    private var tabBarController: TabBarController?
     private var startTime: Date!
 
     override func viewDidLoad() {
@@ -33,14 +33,13 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
         view.backgroundColor = .systemBackground
 
         splashView = SplashView(frame: view.bounds, appName: Bundle.main.altAppDisplayName)
-        destinationViewController = storyboard?.instantiateViewController(withIdentifier: "tabBarController") as? TabBarController
         view.addSubview(splashView)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         guard !didFinishLaunching else { return }
-        Task {
+        Task { @MainActor in
             startTime = Date()
             await runLaunchSequence()
             doPostLaunch()
@@ -64,6 +63,7 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
             DatabaseManager.shared.start { error in
                 Task { @MainActor in
                     if let error {
+                        await self.finishLaunching()
                         await self.handleLaunchError(error, retryCallback: self.runLaunchSequence)
                     } else {
                         await self.finishLaunching()
@@ -77,7 +77,8 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
     private func doPostLaunch() {
         do {
             print("⏳ Running post-launch tasks...")
-            SideJITManager.shared.checkAndPromptIfNeeded(presentingVC: self)
+            let presenter = self.tabBarController ?? self
+            SideJITManager.shared.checkAndPromptIfNeeded(presentingVC: presenter)
             if #available(iOS 17, *), UserDefaults.standard.sidejitenable {
                 DispatchQueue.global().async { SideJITManager.shared.askForNetwork() }
                 print("SideJITServer Enabled")
@@ -96,10 +97,8 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
             if let pf = fetchPairingFile() {
                 print("⏳ Pairing file found, starting minimuxer threads...")
                 UserDefaults.standard.set(false, forKey: aeroPreviewWithoutPairingKey)
-                start_minimuxer_threads(pf)
+                PairingFileManager.shared.startMinimuxerIfPossible(pf, presenter: tabBarController)
             }
-            // No pairing yet: first-run alert + document picker is already shown by PairingFileManager.
-            // User can dismiss the picker to browse in preview mode (no refresh/install until pairing exists).
             #endif
             print("✅ Post-launch tasks completed")
         } catch {
@@ -107,30 +106,9 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
         }
     }
 
-    func start_minimuxer_threads(_ pairing_file: String) {
-        do {
-            print("⏳ Starting minimuxer threads...")
-            retargetUsbmuxdAddr()
-            let documentsDirectory = FileManager.default.documentsDirectory.absoluteString
-            let loggingEnabled = UserDefaults.standard.isMinimuxerConsoleLoggingEnabled
-            try minimuxerStartWithLogger(pairing_file, documentsDirectory, loggingEnabled)
-            print("✅ Minimuxer threads started")
-        } catch {
-            print("❌ Minimuxer failed to start: \(error)")
-            try? FileManager.default.removeItem(at: FileManager.default.documentsDirectory.appendingPathComponent(pairingFileName))
-            displayError(String(format: NSLocalizedString("minimuxer failed to start, please restart %@. %@", comment: ""), Bundle.main.altAppDisplayName, (error as? LocalizedError)?.failureReason ?? error.localizedDescription))
-        }
-        do {
-            print("⏳ Starting auto mounter...")
-            let documentsDirectory = FileManager.default.documentsDirectory.absoluteString
-            startAutoMounter(documentsDirectory)
-            print("✅ Auto mounter started")
-        } catch {
-            print("❌ Auto mounter failed to start: \(error)")
-        }
+    func fetchPairingFile() -> String? {
+        PairingFileManager.shared.fetchPairingFile(presentingVC: tabBarController ?? self)
     }
-
-    func fetchPairingFile() -> String? { PairingFileManager.shared.fetchPairingFile(presentingVC: self) }
 
     func displayError(_ msg: String) {
         print(msg)
@@ -140,44 +118,9 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
-        self.present(alert, animated: true)
+        (self.tabBarController ?? self).present(alert, animated: true)
     }
 
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        let url = urls[0]
-        let isSecuredURL = url.startAccessingSecurityScopedResource() == true
-        defer {
-            if (isSecuredURL) {
-                url.stopAccessingSecurityScopedResource()
-            }
-        }
-
-        do {
-            let data = try Data(contentsOf: url)
-            guard let pairingString = String(data: data, encoding: .utf8) else {
-                displayError("Unable to read pairing file")
-                return
-            }
-            try pairingString.write(to: FileManager.default.documentsDirectory.appendingPathComponent(pairingFileName), atomically: true, encoding: .utf8)
-            UserDefaults.standard.set(false, forKey: aeroPreviewWithoutPairingKey)
-            start_minimuxer_threads(pairingString)
-        } catch {
-            displayError("Unable to read pairing file")
-        }
-        
-        controller.dismiss(animated: true, completion: nil)
-    }
-
-    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-        UserDefaults.standard.set(true, forKey: aeroPreviewWithoutPairingKey)
-        let host = destinationViewController ?? self
-        let toast = ToastView(
-            text: NSLocalizedString("Browsing without pairing", comment: ""),
-            detailText: NSLocalizedString("Add a pairing file in Settings when you're ready to install, refresh, or use device features.", comment: "")
-        )
-        toast.show(in: host)
-    }
-    
     func importAccountAtFile(_ file: URL, remove: Bool = false) {
         _ = file.startAccessingSecurityScopedResource()
         defer { file.stopAccessingSecurityScopedResource() }
@@ -199,10 +142,10 @@ final class LaunchViewController: UIViewController, UIDocumentPickerDelegate {
             Keychain.shared.signingCertificate = altCert.encryptedP12Data(withPassword: "")!
             Keychain.shared.signingCertificatePassword = account.certpass
             let toastView = ToastView(text: NSLocalizedString("Successfully imported '\(account.email)'!", comment: ""), detailText: String(format: NSLocalizedString("%@ should be fully operational now.", comment: ""), Bundle.main.altAppDisplayName))
-            return toastView.show(in: self)
+            return toastView.show(in: self.tabBarController ?? self)
         } else {
             let toastView = ToastView(text: NSLocalizedString("Failed to import account certificate!", comment: ""), detailText: NSLocalizedString("Failed to create ALTCertificate. Check if the password is correct.", comment: ""))
-            return toastView.show(in: self)
+            return toastView.show(in: self.tabBarController ?? self)
         }
     }
     
@@ -236,8 +179,19 @@ extension LaunchViewController {
             alert.addAction(UIAlertAction(title: NSLocalizedString("Retry", comment: ""), style: .default) { _ in
                 Task { await retryCallback?() }
             })
-            present(alert, animated: true)
+            (tabBarController ?? self).present(alert, animated: true)
         }
+    }
+
+    @MainActor
+    private func makeTabBarController() -> TabBarController? {
+        if let tabBarController {
+            return tabBarController
+        }
+        let storyboard = storyboard ?? UIStoryboard(name: "Main", bundle: nil)
+        let controller = storyboard.instantiateViewController(withIdentifier: "tabBarController") as? TabBarController
+        tabBarController = controller
+        return controller
     }
 
     @MainActor
@@ -245,62 +199,49 @@ extension LaunchViewController {
         guard !didFinishLaunching else { return }
         didFinishLaunching = true
 
-        if destinationViewController == nil {
-            destinationViewController = storyboard?.instantiateViewController(withIdentifier: "tabBarController") as? TabBarController
-        }
-        guard let destinationVC = destinationViewController else {
+        guard let destinationVC = makeTabBarController() else {
             displayError(NSLocalizedString("Could not load the main interface.", comment: ""))
             return
         }
 
         if startTime == nil { startTime = Date() }
 
-        do {
-            print("⏳ finishLaunching: Getting destination view controller...")
-            
-            print("⏳ finishLaunching: Calculating animation duration...")
-            let elapsed = abs(startTime.timeIntervalSinceNow)
-            let remaining = elapsed >= 1 ? 0 : 1 - elapsed
+        let elapsed = abs(startTime.timeIntervalSinceNow)
+        let remaining = max(0, 0.35 - elapsed)
+        if remaining > 0 {
             try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
-            
-            print("⏳ finishLaunching: Loading destination view controller...")
-            destinationVC.loadViewIfNeeded()
-            
-            print("⏳ finishLaunching: Setting up view hierarchy...")
-            addChild(destinationVC)
-            destinationVC.view.translatesAutoresizingMaskIntoConstraints = false
-            view.addSubview(destinationVC.view)
-            destinationVC.didMove(toParent: self)
-            
-            // Pin edges BEFORE animation
-            print("⏳ finishLaunching: Activating constraints...")
-            NSLayoutConstraint.activate([
-                destinationVC.view.topAnchor.constraint(equalTo: view.topAnchor),
-                destinationVC.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-                destinationVC.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                destinationVC.view.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-            ])
-
-            // Set initial alpha for fade-in
-            destinationVC.view.alpha = 0
-
-            print("⏳ finishLaunching: Starting transition animation...")
-            UIView.transition(with: view, duration: 0.3, options: .transitionCrossDissolve) { [self] in
-                self.splashView.alpha = 0
-                destinationVC.view.alpha = 1
-            } completion: { _ in
-                print("✅ finishLaunching: Transition complete")
-                self.splashView.removeFromSuperview()
-                self.destinationViewController = destinationVC
-                self.runDeferredLaunchWork()
-            }
-        } catch {
-            print("❌ Error in finishLaunching: \(error)")
-            handleFatalError(error)
         }
+
+        destinationVC.loadViewIfNeeded()
+
+        if let window = view.window ?? Self.activeWindow {
+            window.backgroundColor = .systemBackground
+            window.rootViewController = destinationVC
+            window.makeKeyAndVisible()
+            FluxAppearancePreference.applyToAllWindows()
+            splashView.removeFromSuperview()
+            runDeferredLaunchWork(on: destinationVC)
+            return
+        }
+
+        // Fallback if the scene window is not wired yet.
+        addChild(destinationVC)
+        destinationVC.view.frame = view.bounds
+        destinationVC.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(destinationVC.view, belowSubview: splashView)
+        destinationVC.didMove(toParent: self)
+        splashView.removeFromSuperview()
+        runDeferredLaunchWork(on: destinationVC)
     }
 
-    func runDeferredLaunchWork() {
+    private static var activeWindow: UIWindow? {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: \.isKeyWindow)
+    }
+
+    func runDeferredLaunchWork(on tabBarController: TabBarController) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             do {
                 print("⏳ Running deferred launch work...")
@@ -322,10 +263,9 @@ extension LaunchViewController {
                     }
 
                     let toastView = ToastView(error: error, mode: mode)
-                    toastView.addTarget(self.destinationViewController, action: #selector(TabBarController.presentSources), for: .touchUpInside)
+                    toastView.addTarget(tabBarController, action: #selector(TabBarController.presentSources), for: .touchUpInside)
 
-                    guard let destinationViewController = self.destinationViewController else { return }
-                    toastView.show(in: destinationViewController.selectedViewController ?? destinationViewController)
+                    toastView.show(in: tabBarController.selectedViewController ?? tabBarController)
                 }
 
                 self.updateKnownSources()
@@ -366,7 +306,7 @@ extension LaunchViewController {
 
 // MARK: - SplashView
 final class SplashView: UIView {
-    let iconView = FluxLogoView()
+    let iconView = AeroLogoView()
     let titleLabel = UILabel()
 
     init(frame: CGRect, appName: String) {
@@ -382,21 +322,21 @@ final class SplashView: UIView {
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
         container.layer.shadowColor = UIColor.black.cgColor
-        container.layer.shadowOpacity = 0.25
-        container.layer.shadowOffset = CGSize(width: 0, height: 4)
-        container.layer.shadowRadius = 8
+        container.layer.shadowOpacity = 0.18
+        container.layer.shadowOffset = CGSize(width: 0, height: 6)
+        container.layer.shadowRadius = 14
         addSubview(container)
 
         iconView.translatesAutoresizingMaskIntoConstraints = false
-        iconView.layer.cornerRadius = 24
+        iconView.layer.cornerRadius = 28
         iconView.clipsToBounds = true
         container.addSubview(iconView)
 
         NSLayoutConstraint.activate([
             container.centerXAnchor.constraint(equalTo: centerXAnchor),
-            container.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -20),
-            container.widthAnchor.constraint(equalToConstant: 120),
-            container.heightAnchor.constraint(equalToConstant: 120),
+            container.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -24),
+            container.widthAnchor.constraint(equalToConstant: 128),
+            container.heightAnchor.constraint(equalToConstant: 128),
             iconView.topAnchor.constraint(equalTo: container.topAnchor),
             iconView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
             iconView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
@@ -406,13 +346,13 @@ final class SplashView: UIView {
 
     private func setupTitle(appName: String) {
         titleLabel.text = appName
-        titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: 28, weight: .bold)
         titleLabel.textColor = .label
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(titleLabel)
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 12),
+            titleLabel.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 16),
             titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor)
         ])
     }
@@ -456,24 +396,103 @@ final class PairingFileManager {
         })
         alert.addAction(UIAlertAction(title: NSLocalizedString("Browse without pairing", comment: ""), style: .cancel) { _ in
             UserDefaults.standard.set(true, forKey: aeroPreviewWithoutPairingKey)
-            let host = (vc as? LaunchViewController)?.destinationViewController ?? vc
             let toast = ToastView(
                 text: NSLocalizedString("Preview mode", comment: ""),
                 detailText: NSLocalizedString("Add a pairing file in Settings to install, refresh, or use device features.", comment: "")
             )
-            toast.show(in: host)
+            toast.show(in: vc)
         })
         alert.addAction(UIAlertAction(title: NSLocalizedString("Choose File…", comment: ""), style: .default) { _ in
             var types = UTType.types(tag: "plist", tagClass: .filenameExtension, conformingTo: nil)
             types.append(contentsOf: UTType.types(tag: "mobiledevicepairing", tagClass: .filenameExtension, conformingTo: .data))
             types.append(.xml)
             let picker = UIDocumentPickerViewController(forOpeningContentTypes: types)
-            picker.delegate = vc as? UIDocumentPickerDelegate
+            picker.delegate = PairingFileImportCoordinator.shared
+            PairingFileImportCoordinator.shared.presentingViewController = vc
             picker.shouldShowFileExtensions = true
             vc.present(picker, animated: true)
             UserDefaults.standard.isPairingReset = false
         })
         vc.present(alert, animated: true)
+    }
+
+    func startMinimuxerIfPossible(_ pairingString: String, presenter: UIViewController?) {
+        #if targetEnvironment(simulator)
+        return
+        #else
+        do {
+            retargetUsbmuxdAddr()
+            let documentsDirectory = FileManager.default.documentsDirectory.absoluteString
+            let loggingEnabled = UserDefaults.standard.isMinimuxerConsoleLoggingEnabled
+            try minimuxerStartWithLogger(pairingString, documentsDirectory, loggingEnabled)
+            let documentsDirectoryPath = FileManager.default.documentsDirectory.absoluteString
+            startAutoMounter(documentsDirectoryPath)
+        } catch {
+            try? FileManager.default.removeItem(at: FileManager.default.documentsDirectory.appendingPathComponent(pairingFileName))
+            guard let presenter else { return }
+            let alert = UIAlertController(
+                title: String(format: NSLocalizedString("Error launching %@", comment: ""), Bundle.main.altAppDisplayName),
+                message: (error as? LocalizedError)?.failureReason ?? error.localizedDescription,
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
+            presenter.present(alert, animated: true)
+        }
+        #endif
+    }
+}
+
+// MARK: - Pairing file import (survives launch → tab bar transition)
+final class PairingFileImportCoordinator: NSObject, UIDocumentPickerDelegate {
+    static let shared = PairingFileImportCoordinator()
+    weak var presentingViewController: UIViewController?
+
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let url = urls.first else { return }
+        let isSecuredURL = url.startAccessingSecurityScopedResource()
+        defer {
+            if isSecuredURL { url.stopAccessingSecurityScopedResource() }
+        }
+
+        do {
+            let data = try Data(contentsOf: url)
+            guard let pairingString = String(data: data, encoding: .utf8) else {
+                showError(NSLocalizedString("Unable to read pairing file", comment: ""))
+                return
+            }
+            try pairingString.write(
+                to: FileManager.default.documentsDirectory.appendingPathComponent(pairingFileName),
+                atomically: true,
+                encoding: .utf8
+            )
+            UserDefaults.standard.set(false, forKey: aeroPreviewWithoutPairingKey)
+            PairingFileManager.shared.startMinimuxerIfPossible(pairingString, presenter: presentingViewController)
+        } catch {
+            showError(NSLocalizedString("Unable to read pairing file", comment: ""))
+        }
+
+        controller.dismiss(animated: true)
+    }
+
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        UserDefaults.standard.set(true, forKey: aeroPreviewWithoutPairingKey)
+        guard let host = presentingViewController else { return }
+        let toast = ToastView(
+            text: NSLocalizedString("Browsing without pairing", comment: ""),
+            detailText: NSLocalizedString("Add a pairing file in Settings when you're ready to install, refresh, or use device features.", comment: "")
+        )
+        toast.show(in: host)
+    }
+
+    private func showError(_ message: String) {
+        guard let host = presentingViewController else { return }
+        let alert = UIAlertController(
+            title: String(format: NSLocalizedString("Error launching %@", comment: ""), Bundle.main.altAppDisplayName),
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
+        host.present(alert, animated: true)
     }
 }
 

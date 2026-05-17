@@ -54,7 +54,7 @@ final class FluxAddCatalogViewController: UIViewController {
         logoHeader.alignment = .center
         logoHeader.spacing = 0
 
-        let logo = FluxLogoView()
+        let logo = AeroLogoView()
         logo.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             logo.widthAnchor.constraint(equalToConstant: 72),

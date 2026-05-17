@@ -49,7 +49,10 @@ final class TabBarController: UITabBarController
     /// Storyboard tab order: News (0), Browse (1), My Apps (2), Settings placeholder (3). We expose Browse, My Apps, Settings only.
     private func configurePrimaryTabs()
     {
-        guard let vcs = self.viewControllers, vcs.count >= 4 else { return }
+        guard let vcs = self.viewControllers, vcs.count >= 4 else {
+            assertionFailure("TabBarController expected 4 storyboard tabs (News, Browse, My Apps, Settings).")
+            return
+        }
 
         let browseNavigationController = vcs[1] as! UINavigationController
         browseNavigationController.tabBarItem.title = NSLocalizedString("Browse", comment: "")
