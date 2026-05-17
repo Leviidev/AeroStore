@@ -13,9 +13,9 @@ extension TabBarController
 {
     enum Tab: Int, CaseIterable
     {
+        case news
         case browse
         case myApps
-        case notifications
         case settings
     }
 }
@@ -39,92 +39,35 @@ final class TabBarController: UITabBarController
         NotificationCenter.default.addObserver(self, selector: #selector(TabBarController.openErrorLog(_:)), name: ToastView.openErrorLogNotification, object: nil)
     }
     
-    override func viewDidLoad() 
+    override func viewDidLoad()
     {
         super.viewDidLoad()
         self.configureTabBarAppearance()
 
-        // Browse, My Apps, Notifications, Settings.
-        if let vcs = self.viewControllers, vcs.count >= 4 {
-            // Find the correct view controllers by their storyboard identifiers or types
-            var myAppsNavController: UINavigationController?
-            var browseNavController: UINavigationController?
-            
-            // Find My Apps navigation controller (should be the one with MyAppsViewController)
-            for vc in vcs {
+        // Configure existing tab bar items from storyboard
+        if let vcs = self.viewControllers, vcs.count >= 3 {
+            // Storyboard has: News, Browse, My Apps, Settings
+            // We'll configure them appropriately
+            for (index, vc) in vcs.enumerated() {
                 if let nav = vc as? UINavigationController {
-                    if nav.viewControllers.contains(where: { $0 is MyAppsViewController }) {
-                        myAppsNavController = nav
-                    } else if nav.viewControllers.contains(where: { $0 is FeaturedViewController }) {
-                        browseNavController = nav
+                    switch index {
+                    case 0: // News - keep as is or repurpose
+                        nav.tabBarItem.title = NSLocalizedString("News", comment: "")
+                        nav.tabBarItem.image = UIImage(systemName: "newspaper.fill")
+                    case 1: // Browse
+                        nav.tabBarItem.title = NSLocalizedString("Browse", comment: "")
+                        nav.tabBarItem.image = UIImage(systemName: "square.grid.3x3.fill")
+                    case 2: // My Apps
+                        nav.tabBarItem.title = NSLocalizedString("My Apps", comment: "")
+                        nav.tabBarItem.image = UIImage(systemName: "square.grid.2x2")
+                    case 3: // Settings
+                        nav.tabBarItem.title = NSLocalizedString("Settings", comment: "")
+                        nav.tabBarItem.image = UIImage(systemName: "gearshape.fill")
+                    default:
+                        break
                     }
                 }
             }
-            
-            // Use found controllers or fall back to index-based access
-            let browseNavigationController = browseNavController ?? vcs[0] as! UINavigationController
-            let myAppsNavigationController = myAppsNavController ?? vcs[1] as! UINavigationController
-            
-            browseNavigationController.tabBarItem.title = NSLocalizedString("Browse", comment: "")
-            browseNavigationController.tabBarItem.image = UIImage(systemName: "square.grid.3x3.fill")
-
-            myAppsNavigationController.tabBarItem.title = NSLocalizedString("My Apps", comment: "")
-            myAppsNavigationController.tabBarItem.image = UIImage(systemName: "square.grid.2x2")
-
-            let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            let featured = storyboard.instantiateViewController(withIdentifier: "featuredViewController") as! FeaturedViewController
-            featured.navigationItem.largeTitleDisplayMode = .always
-
-            let addMenu = UIMenu(title: NSLocalizedString("Add", comment: ""), children: [
-                UIAction(title: NSLocalizedString("Import from Files", comment: ""), image: UIImage(systemName: "folder.fill")) { [weak featured] _ in
-                    // Handle Files import - existing functionality
-                    guard let nav = featured?.navigationController else { return }
-                    let add = FluxAddCatalogViewController()
-                    let sheet = UINavigationController(rootViewController: add)
-                    sheet.modalPresentationStyle = .formSheet
-                    sheet.navigationBar.prefersLargeTitles = false
-                    nav.present(sheet, animated: true)
-                },
-                UIAction(title: NSLocalizedString("Import from URL", comment: ""), image: UIImage(systemName: "link.fill")) { [weak featured] _ in
-                    // Handle URL import
-                    guard let nav = featured?.navigationController else { return }
-                    let urlImport = FluxURLImportViewController()
-                    let sheet = UINavigationController(rootViewController: urlImport)
-                    sheet.modalPresentationStyle = .formSheet
-                    sheet.navigationBar.prefersLargeTitles = false
-                    nav.present(sheet, animated: true)
-                }
-            ])
-            
-            // Avoid UIBarButtonItem initializers whose signatures differ across Xcode/iOS SDKs.
-            let addHost = UIButton(type: .system)
-            addHost.setImage(UIImage(systemName: "plus.circle.fill"), for: .normal)
-            addHost.showsMenuAsPrimaryAction = true
-            addHost.menu = addMenu
-            addHost.accessibilityLabel = NSLocalizedString("Add", comment: "")
-            featured.navigationItem.rightBarButtonItem = UIBarButtonItem(customView: addHost)
-
-            browseNavigationController.setViewControllers([featured], animated: false)
-
-            // Tools tab
-            let toolsViewController = FluxToolsViewController()
-            let toolsNavigationController = UINavigationController(rootViewController: toolsViewController)
-            toolsNavigationController.navigationBar.prefersLargeTitles = true
-            toolsNavigationController.tabBarItem.title = NSLocalizedString("Tools", comment: "")
-            toolsNavigationController.tabBarItem.image = UIImage(systemName: "wrench.and.screwdriver.fill")
-
-            let settingsStoryboard = UIStoryboard(name: "Settings", bundle: nil)
-            let settingsNavigationController = settingsStoryboard.instantiateInitialViewController() as! UINavigationController
-            settingsNavigationController.navigationBar.prefersLargeTitles = true
-            settingsNavigationController.tabBarItem.title = NSLocalizedString("Settings", comment: "")
-            settingsNavigationController.tabBarItem.image = UIImage(systemName: "gearshape.fill")
-
-            self.viewControllers = [
-                browseNavigationController,
-                myAppsNavigationController,
-                toolsNavigationController,
-                settingsNavigationController,
-            ]
         }
     }
 
