@@ -13,7 +13,7 @@
         <scene sceneID="lNR-II-WoW">
             <objects>
                 <navigationController storyboardIdentifier="navigationController" id="ZTo-53-dSL" sceneMemberID="viewController">
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" barStyle="black" largeTitles="YES" id="Aej-RF-PfV" customClass="NavigationBar" customModule="SideStore" customModuleProvider="target">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" barStyle="black" largeTitles="YES" id="Aej-RF-PfV" customClass="NavigationBar" customModuleProvider="target">
                         <rect key="frame" x="0.0" y="20" width="375" height="96"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -36,7 +36,7 @@
         <!--Authentication View Controller-->
         <scene sceneID="OCd-xc-Ms7">
             <objects>
-                <viewController storyboardIdentifier="authenticationViewController" id="yO1-iT-7NP" customClass="AuthenticationViewController" customModule="SideStore" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="authenticationViewController" id="yO1-iT-7NP" customClass="AuthenticationViewController" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="mjy-4S-hyH">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -258,7 +258,7 @@
         <!--How it works-->
         <scene sceneID="dMt-EA-SGy">
             <objects>
-                <viewController storyboardIdentifier="instructionsViewController" hidesBottomBarWhenPushed="YES" id="aFi-fb-W0B" customClass="InstructionsViewController" customModule="SideStore" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="instructionsViewController" hidesBottomBarWhenPushed="YES" id="aFi-fb-W0B" customClass="InstructionsViewController" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" id="Otz-hn-WGS">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -434,7 +434,7 @@
         <!--Refresh SideStore-->
         <scene sceneID="9Vh-dM-OqX">
             <objects>
-                <viewController storyboardIdentifier="refreshAltStoreViewController" id="aoK-yE-UVT" customClass="RefreshAltStoreViewController" customModule="SideStore" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="refreshAltStoreViewController" id="aoK-yE-UVT" customClass="RefreshAltStoreViewController" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" id="R83-kV-365">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -445,7 +445,7 @@
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="tDQ-ao-1Jg">
                                 <rect key="frame" x="16" y="570" width="343" height="89"/>
                                 <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xcg-hT-tDe" customClass="PillButton" customModule="SideStore" customModuleProvider="target">
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="xcg-hT-tDe" customClass="PillButton" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="0.0" width="343" height="51"/>
                                         <color key="backgroundColor" name="SettingsHighlighted"/>
                                         <constraints>
@@ -498,7 +498,7 @@
         <!--Select a Team-->
         <scene sceneID="ioQ-WB-CLJ">
             <objects>
-                <viewController storyboardIdentifier="selectTeamViewController" hidesBottomBarWhenPushed="YES" id="kOD-4P-a6L" customClass="SelectTeamViewController" customModule="SideStore" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="selectTeamViewController" hidesBottomBarWhenPushed="YES" id="kOD-4P-a6L" customClass="SelectTeamViewController" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" indicatorStyle="white" dataMode="prototypes" style="grouped" separatorStyle="none" rowHeight="60" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="fWW-kX-ifH">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -506,7 +506,7 @@
                         <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <color key="separatorColor" white="1" alpha="0.25" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <prototypes>
-                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="TeamCell" textLabel="6ip-34-gmM" detailTextLabel="knk-Wf-PKf" style="IBUITableViewCellStyleSubtitle" id="qeQ-eb-2SC" customClass="InsetGroupTableViewCell" customModule="SideStore" customModuleProvider="target">
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" reuseIdentifier="TeamCell" textLabel="6ip-34-gmM" detailTextLabel="knk-Wf-PKf" style="IBUITableViewCellStyleSubtitle" id="qeQ-eb-2SC" customClass="InsetGroupTableViewCell" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="55.5" width="375" height="60"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="qeQ-eb-2SC" id="bT4-Fc-u6I">

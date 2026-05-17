@@ -97,7 +97,7 @@ jobs:
             echo "---- Last 100 lines of xcode-archive.log ----"
             tail -n 100 "$LOG" || true
             echo "---- Errors / failures in log ----"
-            grep -iE ' error: |fatal error:|\\*\\* .* FAILED \\*\\*|Command .* failed|BUILD FAILED|IPA failed|Error:' "$LOG" | tail -80 || true
+            grep -iE ' error: |fatal error:|following build commands failed|BUILD FAILED|Command .* failed|PhaseScriptExecution|Error:' "$LOG" | tail -100 || true
             exit "$XC"
           fi
 

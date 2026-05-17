@@ -7,6 +7,7 @@ import UIKit
 import AltStoreCore
 
 /// Single place that installs the main tab interface on the key window.
+@MainActor
 enum AppLaunchCoordinator {
     private static var didInstallMainInterface = false
 

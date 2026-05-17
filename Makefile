@@ -293,12 +293,9 @@ CODESIGNING_FOLDER_PATH ?= # this is the path to your main app (possibly in deri
 # CONFIGURATION_BUILD_DIR = # this is the path to your main app (possibly in derived-data unless changed manually)
 # CODESIGNING_FOLDER_PATH = # this is the path to your main app (possibly in derived-data unless changed manually)
 
-# Xcode sets CONFIGURATION_BUILD_DIR (Products dir) and/or CODESIGNING_FOLDER_PATH (.../AeroStore.app).
-# Do not use `readlink -f` — BSD readlink on macOS does not support -f and breaks CI archive scripts.
-_ROOT_FROM_CONFIG := $(patsubst %/,%,$(CONFIGURATION_BUILD_DIR))
-_ROOT_FROM_SIGNING := $(patsubst %/,%,$(dir $(CODESIGNING_FOLDER_PATH)))
-ALT_APP_SRC_PARENT := $(if $(_ROOT_FROM_CONFIG),$(_ROOT_FROM_CONFIG),$(_ROOT_FROM_SIGNING))
-VAR_USED := $(if $(CONFIGURATION_BUILD_DIR),CONFIGURATION_BUILD_DIR,$(if $(CODESIGNING_FOLDER_PATH),CODESIGNING_FOLDER_PATH,?))
+ROOT_DIR 			:= $(CONFIGURATION_BUILD_DIR)
+ROOT_DIR 			:= $(if $(ROOT_DIR),$(ROOT_DIR),$(if $(CODESIGNING_FOLDER_PATH),$(CODESIGNING_FOLDER_PATH)/..,))
+VAR_USED			:= $(if $(CONFIGURATION_BUILD_DIR),"CONFIGURATION_BUILD_DIR",$(if $(CODESIGNING_FOLDER_PATH),"CODESIGNING_FOLDER_PATH","?"))
 
 TARGET_BUILD_DIR 	:= build
 TARGET_ARCHIVE_DIR 	:= altbackup.xcarchive
@@ -306,6 +303,8 @@ TARGET_NAME 		:= AltBackup.app
 TARGET_DSYM_NAME 	:= AltBackup.app.dSYM
 TARGET_IPA_NAME 	:= AltBackup.ipa
 
+
+ALT_APP_SRC_PARENT 	:= $(shell readlink -f "$(ROOT_DIR)")
 ALT_APP_SRC 		:= $(ALT_APP_SRC_PARENT)/$(TARGET_NAME)
 ALT_APP_DSYM_SRC 	:= $(ALT_APP_SRC_PARENT)/$(TARGET_DSYM_NAME)
 ALT_APP_DST_ARCHIVE := "$(TARGET_BUILD_DIR)/$(TARGET_ARCHIVE_DIR)"

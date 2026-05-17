@@ -17,8 +17,6 @@ CODE_SIGN_ENTITLEMENTS = ./AltStore/AltStoreFree.entitlements
 ORG_PREFIX = $(ORG_IDENTIFIER)
 
 PRODUCT_NAME = AeroStore
-// Storyboards use customModule="SideStore"; must match Swift module name.
-PRODUCT_MODULE_NAME = SideStore
 INFOPLIST_KEY_CFBundleDisplayName = AeroStore
 //PRODUCT_NAME[configuration=Debug] = Prov Debug
 
