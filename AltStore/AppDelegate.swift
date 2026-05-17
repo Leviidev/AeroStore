@@ -107,33 +107,14 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             print("❌ Failed to recreate database: \(error)")
         }
         
-        // Start DatabaseManager with timeout
-        print("⏳ Starting DatabaseManager...")
-        let databaseStartGroup = DispatchGroup()
-        databaseStartGroup.enter()
-        var databaseStartError: Error? = nil
-        
-        DatabaseManager.shared.start { (error) in
-            if let error = error
-            {
+        // Start DatabaseManager without blocking the main thread (LaunchViewController finishes UI when ready).
+        print("⏳ Starting DatabaseManager (async)...")
+        DatabaseManager.shared.start { error in
+            if let error {
                 print("❌ Failed to start DatabaseManager. Error: \(error)")
-                databaseStartError = error
-            }
-            else
-            {
+            } else {
                 print("✅ DatabaseManager started successfully")
             }
-            databaseStartGroup.leave()
-        }
-        
-        // Wait for database to start with a timeout
-        let timeoutResult = databaseStartGroup.wait(timeout: .now() + 10.0)
-        if timeoutResult == .timedOut {
-            print("❌ DatabaseManager startup timed out!")
-        }
-        
-        if databaseStartError != nil {
-            print("⚠️ DatabaseManager failed to start, but continuing...")
         }
         
         do {

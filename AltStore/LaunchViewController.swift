@@ -2,53 +2,44 @@
 //  LaunchViewController.swift
 //  AltStore
 //
-//  Created by Riley Testut on 7/30/19.
-//  Copyright © 2019 Riley Testut. All rights reserved.
-//
 
 import UIKit
 import Roxas
-
 import WidgetKit
-
 import AltSign
 import AltStoreCore
 import UniformTypeIdentifiers
 
 let pairingFileName = "ALTPairingFile.mobiledevicepairing"
 
-/// Set when the user continues without a device pairing file (browse/install blocked until pairing is added).
 private let aeroPreviewWithoutPairingKey = "AeroStore.previewWithoutDevicePairing"
 
 final class LaunchViewController: UIViewController {
     private var didFinishLaunching = false
     private var retries = 0
-    private var maxRetries = 3
+    private let maxRetries = 3
     private var splashView: SplashView!
-    private var mainTabBarController: TabBarController?
     private var startTime: Date!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-
         splashView = SplashView(frame: view.bounds, appName: Bundle.main.altAppDisplayName)
+        splashView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(splashView)
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         guard !didFinishLaunching else { return }
+        startTime = Date()
         Task { @MainActor in
-            startTime = Date()
             await runLaunchSequence()
-            doPostLaunch()
         }
     }
 
     private func runLaunchSequence() async {
         if retries >= maxRetries {
-            print("⚠️ Launch sequence exceeded \(maxRetries) retries; showing UI anyway")
             await finishLaunching()
             return
         }
@@ -74,81 +65,72 @@ final class LaunchViewController: UIViewController {
         }
     }
 
-    private func doPostLaunch() {
-        do {
-            print("⏳ Running post-launch tasks...")
-            let presenter = self.mainTabBarController ?? self
-            SideJITManager.shared.checkAndPromptIfNeeded(presentingVC: presenter)
+    @MainActor
+    private func finishLaunching() async {
+        guard !didFinishLaunching else { return }
+        didFinishLaunching = true
+
+        let elapsed = abs(startTime.timeIntervalSinceNow)
+        let remaining = max(0, 0.25 - elapsed)
+        if remaining > 0 {
+            try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
+        }
+
+        AppLaunchCoordinator.installMainInterface(animated: true)
+
+        guard let tabBar = AppLaunchCoordinator.resolveKeyWindow()?.rootViewController as? TabBarController else {
+            print("❌ LaunchViewController: main interface not installed")
+            return
+        }
+
+        splashView?.removeFromSuperview()
+        runDeferredLaunchWork(on: tabBar)
+        schedulePostLaunchWork(on: tabBar)
+    }
+
+    @MainActor
+    private func schedulePostLaunchWork(on tabBar: TabBarController) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            SideJITManager.shared.checkAndPromptIfNeeded(presentingVC: tabBar)
             if #available(iOS 17, *), UserDefaults.standard.sidejitenable {
                 DispatchQueue.global().async { SideJITManager.shared.askForNetwork() }
-                print("SideJITServer Enabled")
             }
 
             #if !targetEnvironment(simulator)
-            
-            print("⏳ Detecting account file...")
-            detectAndImportAccountFile()
-            
+            self.detectAndImportAccountFile()
             if UserDefaults.standard.enableEMPforWireguard {
-                print("⏳ Starting EM Proxy...")
                 startEMProxy(bind_addr: AppConstants.Proxy.serverURL)
-                print("✅ EM Proxy started")
             }
-            if let pf = fetchPairingFile() {
-                print("⏳ Pairing file found, starting minimuxer threads...")
+            if let pf = PairingFileManager.shared.fetchPairingFile(presentingVC: tabBar) {
                 UserDefaults.standard.set(false, forKey: aeroPreviewWithoutPairingKey)
-                PairingFileManager.shared.startMinimuxerIfPossible(pf, presenter: mainTabBarController)
+                PairingFileManager.shared.startMinimuxerIfPossible(pf, presenter: tabBar)
             }
             #endif
-            print("✅ Post-launch tasks completed")
-        } catch {
-            print("❌ Error in doPostLaunch: \(error)")
         }
-    }
-
-    func fetchPairingFile() -> String? {
-        PairingFileManager.shared.fetchPairingFile(presentingVC: mainTabBarController ?? self)
-    }
-
-    func displayError(_ msg: String) {
-        print(msg)
-        let alert = UIAlertController(
-            title: String(format: NSLocalizedString("Error launching %@", comment: ""), Bundle.main.altAppDisplayName),
-            message: msg,
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
-        (self.mainTabBarController ?? self).present(alert, animated: true)
     }
 
     func importAccountAtFile(_ file: URL, remove: Bool = false) {
         _ = file.startAccessingSecurityScopedResource()
         defer { file.stopAccessingSecurityScopedResource() }
-        guard let accountD = try? Data(contentsOf: file) else {
-            return Logger.main.notice("Could not parse data from file \(file)")
-        }
-        guard let account = try? Foundation.JSONDecoder().decode(ImportedAccount.self, from: accountD) else {
-            return Logger.main.notice("Could not parse data from file \(file)")
-        }
-        print("We want to import this account probably: \(account)")
-        if remove {
-            try? FileManager.default.removeItem(at: file)
-        }
+        guard let accountD = try? Data(contentsOf: file),
+              let account = try? Foundation.JSONDecoder().decode(ImportedAccount.self, from: accountD) else { return }
+
+        if remove { try? FileManager.default.removeItem(at: file) }
         Keychain.shared.appleIDEmailAddress = account.email
         Keychain.shared.appleIDPassword = account.password
         Keychain.shared.adiPb = account.adiPB
         Keychain.shared.identifier = account.local_user
+        guard let tabBar = AppLaunchCoordinator.resolveKeyWindow()?.rootViewController as? TabBarController else { return }
         if let altCert = ALTCertificate(p12Data: account.cert, password: account.certpass) {
             Keychain.shared.signingCertificate = altCert.encryptedP12Data(withPassword: "")!
             Keychain.shared.signingCertificatePassword = account.certpass
-            let toastView = ToastView(text: NSLocalizedString("Successfully imported '\(account.email)'!", comment: ""), detailText: String(format: NSLocalizedString("%@ should be fully operational now.", comment: ""), Bundle.main.altAppDisplayName))
-            return toastView.show(in: self.mainTabBarController ?? self)
-        } else {
-            let toastView = ToastView(text: NSLocalizedString("Failed to import account certificate!", comment: ""), detailText: NSLocalizedString("Failed to create ALTCertificate. Check if the password is correct.", comment: ""))
-            return toastView.show(in: self.mainTabBarController ?? self)
+            ToastView(
+                text: NSLocalizedString("Successfully imported '\(account.email)'!", comment: ""),
+                detailText: String(format: NSLocalizedString("%@ should be fully operational now.", comment: ""), Bundle.main.altAppDisplayName)
+            ).show(in: tabBar)
         }
     }
-    
+
     func detectAndImportAccountFile() {
         let accountFileURL = FileManager.default.documentsDirectory.appendingPathComponent("Account.sideconf")
         #if !DEBUG
@@ -157,18 +139,14 @@ final class LaunchViewController: UIViewController {
         importAccountAtFile(accountFileURL)
         #endif
     }
-    
-    private func handleFatalError(_ error: Error) {
-        print("🔴 FATAL ERROR: \(error)")
-        print("Stack trace: \(Thread.callStackSymbols)")
-    }
 }
 
 extension LaunchViewController {
     @MainActor
     func handleLaunchError(_ error: Error, retryCallback: (() async -> Void)? = nil) {
         do { throw error } catch let error as NSError {
-            let title = error.userInfo[NSLocalizedFailureErrorKey] as? String ?? String(format: NSLocalizedString("Unable to Launch %@", comment: ""), Bundle.main.altAppDisplayName)
+            let title = error.userInfo[NSLocalizedFailureErrorKey] as? String
+                ?? String(format: NSLocalizedString("Unable to Launch %@", comment: ""), Bundle.main.altAppDisplayName)
             let desc: String
             if #available(iOS 14.5, *) {
                 desc = ([error.debugDescription] + error.underlyingErrors.map { ($0 as NSError).debugDescription }).joined(separator: "\n\n")
@@ -179,119 +157,51 @@ extension LaunchViewController {
             alert.addAction(UIAlertAction(title: NSLocalizedString("Retry", comment: ""), style: .default) { _ in
                 Task { await retryCallback?() }
             })
-            (mainTabBarController ?? self).present(alert, animated: true)
+            let host = AppLaunchCoordinator.resolveKeyWindow()?.rootViewController ?? self
+            host.present(alert, animated: true)
         }
-    }
-
-    @MainActor
-    private func makeTabBarController() -> TabBarController {
-        if let mainTabBarController {
-            return mainTabBarController
-        }
-        let controller = TabBarController.makeMainInterface()
-        mainTabBarController = controller
-        return controller
-    }
-
-    @MainActor
-    func finishLaunching() async {
-        guard !didFinishLaunching else { return }
-        didFinishLaunching = true
-
-        let destinationVC = makeTabBarController()
-
-        if startTime == nil { startTime = Date() }
-
-        let elapsed = abs(startTime.timeIntervalSinceNow)
-        let remaining = max(0, 0.35 - elapsed)
-        if remaining > 0 {
-            try? await Task.sleep(nanoseconds: UInt64(remaining * 1_000_000_000))
-        }
-
-        destinationVC.loadViewIfNeeded()
-        destinationVC.selectedViewController?.loadViewIfNeeded()
-
-        guard let window = Self.resolveWindow(for: view) else {
-            displayError(NSLocalizedString("Could not attach to the app window.", comment: ""))
-            return
-        }
-
-        window.backgroundColor = .systemBackground
-        window.rootViewController = destinationVC
-        window.makeKeyAndVisible()
-        FluxAppearancePreference.applyToAllWindows()
-
-        runDeferredLaunchWork(on: destinationVC)
-    }
-
-    private static func resolveWindow(for view: UIView?) -> UIWindow? {
-        if let window = view?.window { return window }
-        return UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap(\.windows)
-            .first(where: \.isKeyWindow)
-            ?? UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap(\.windows)
-                .first
     }
 
     func runDeferredLaunchWork(on tabBarController: TabBarController) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            do {
-                print("⏳ Running deferred launch work...")
-                AppManager.shared.update()
-                AppManager.shared.updateAllSources { result in
-                    guard case .failure(let error) = result else {
-                        print("✅ Sources updated successfully")
-                        return
-                    }
-                    print("❌ Failed to update sources on launch: \(error.localizedDescription)")
-                    Logger.main.error("Failed to update sources on launch. \(error.localizedDescription, privacy: .public)")
-
-                    let errorDesc = ErrorProcessing(.fullError).getDescription(error: error as NSError)
-                    print("Failed to update sources on launch. \(errorDesc)")
-
-                    var mode: ToastView.InfoMode = .fullError
-                    if String(describing: error).contains("The Internet connection appears to be offline") {
-                        mode = .localizedDescription
-                    }
-
-                    let toastView = ToastView(error: error, mode: mode)
-                    toastView.addTarget(tabBarController, action: #selector(TabBarController.presentSources), for: .touchUpInside)
-
-                    toastView.show(in: tabBarController.selectedViewController ?? tabBarController)
+            AppManager.shared.update()
+            AppManager.shared.updateAllSources { result in
+                guard case .failure(let error) = result else { return }
+                var mode: ToastView.InfoMode = .fullError
+                if String(describing: error).contains("The Internet connection appears to be offline") {
+                    mode = .localizedDescription
                 }
-
-                self.updateKnownSources()
-                WidgetCenter.shared.reloadAllTimelines()
-            } catch {
-                print("❌ Error in runDeferredLaunchWork: \(error)")
+                let toastView = ToastView(error: error, mode: mode)
+                toastView.addTarget(tabBarController, action: #selector(TabBarController.presentSources), for: .touchUpInside)
+                toastView.show(in: tabBarController.selectedViewController ?? tabBarController)
             }
+            self.updateKnownSources()
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
 
     func updateKnownSources() {
         AppManager.shared.updateKnownSources { result in
-            switch result {
-            case .failure(let error):
-                print("❌ Failed to update known sources: \(error)")
-            case .success((_, let blockedSources)):
-                DatabaseManager.shared.persistentContainer.performBackgroundTask { context in
-                    let blockedSourceIDs = Set(blockedSources.lazy.map { $0.identifier })
-                    let blockedSourceURLs = Set(blockedSources.lazy.compactMap { $0.sourceURL })
-                    let predicate = NSPredicate(format: "%K IN %@ OR %K IN %@", #keyPath(Source.identifier), blockedSourceIDs, #keyPath(Source.sourceURL), blockedSourceURLs)
-                    let sourceErrors = Source.all(satisfying: predicate, in: context).map { source in
-                        let blocked = blockedSources.first { $0.identifier == source.identifier }
-                        return SourceError.blocked(source, bundleIDs: blocked?.bundleIDs, existingSource: source)
-                    }
-                    guard !sourceErrors.isEmpty else { return }
-                    Task {
-                        for error in sourceErrors {
-                            let title = String(format: NSLocalizedString("\"%@\" Blocked", comment: ""), error.$source.name)
-                            let message = [error.localizedDescription, error.recoverySuggestion].compactMap { $0 }.joined(separator: "\n\n")
-                            await self.presentAlert(title: title, message: message)
-                        }
+            guard case .success((_, let blockedSources)) = result else { return }
+            DatabaseManager.shared.persistentContainer.performBackgroundTask { context in
+                let blockedSourceIDs = Set(blockedSources.lazy.map { $0.identifier })
+                let blockedSourceURLs = Set(blockedSources.lazy.compactMap { $0.sourceURL })
+                let predicate = NSPredicate(
+                    format: "%K IN %@ OR %K IN %@",
+                    #keyPath(Source.identifier), blockedSourceIDs,
+                    #keyPath(Source.sourceURL), blockedSourceURLs
+                )
+                let sourceErrors = Source.all(satisfying: predicate, in: context).map { source in
+                    let blocked = blockedSources.first { $0.identifier == source.identifier }
+                    return SourceError.blocked(source, bundleIDs: blocked?.bundleIDs, existingSource: source)
+                }
+                guard !sourceErrors.isEmpty else { return }
+                Task { @MainActor in
+                    let host = AppLaunchCoordinator.resolveKeyWindow()?.rootViewController
+                    for error in sourceErrors {
+                        let title = String(format: NSLocalizedString("\"%@\" Blocked", comment: ""), error.$source.name)
+                        let message = [error.localizedDescription, error.recoverySuggestion].compactMap { $0 }.joined(separator: "\n\n")
+                        await host?.presentAlert(title: title, message: message)
                     }
                 }
             }
@@ -316,17 +226,11 @@ final class SplashView: UIView {
     private func setupIcon() {
         let container = UIView()
         container.translatesAutoresizingMaskIntoConstraints = false
-        container.layer.shadowColor = UIColor.black.cgColor
-        container.layer.shadowOpacity = 0.18
-        container.layer.shadowOffset = CGSize(width: 0, height: 6)
-        container.layer.shadowRadius = 14
         addSubview(container)
-
         iconView.translatesAutoresizingMaskIntoConstraints = false
         iconView.layer.cornerRadius = 28
         iconView.clipsToBounds = true
         container.addSubview(iconView)
-
         NSLayoutConstraint.activate([
             container.centerXAnchor.constraint(equalTo: centerXAnchor),
             container.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -24),
@@ -335,7 +239,7 @@ final class SplashView: UIView {
             iconView.topAnchor.constraint(equalTo: container.topAnchor),
             iconView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
             iconView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            iconView.trailingAnchor.constraint(equalTo: container.trailingAnchor)
+            iconView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
         ])
     }
 
@@ -348,7 +252,7 @@ final class SplashView: UIView {
         addSubview(titleLabel)
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: iconView.bottomAnchor, constant: 16),
-            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor)
+            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
         ])
     }
 }
@@ -356,17 +260,12 @@ final class SplashView: UIView {
 // MARK: - PairingFileManager
 final class PairingFileManager {
     static let shared = PairingFileManager()
+
     func fetchPairingFile(presentingVC: UIViewController) -> String? {
-        let fm = FileManager.default
-        let filename = pairingFileName
-        let documentsPath = fm.documentsDirectory.appendingPathComponent("/\(filename)")
-        if fm.fileExists(atPath: documentsPath.path),
-           let contents = try? String(contentsOf: documentsPath), !contents.isEmpty {
-            return contents
-        }
+        let documentsPath = FileManager.default.documentsDirectory.appendingPathComponent(pairingFileName)
+        if let contents = try? String(contentsOf: documentsPath), !contents.isEmpty { return contents }
         if let url = Bundle.main.url(forResource: "ALTPairingFile", withExtension: "mobiledevicepairing"),
-           fm.fileExists(atPath: url.path),
-           let data = fm.contents(atPath: url.path),
+           let data = try? Data(contentsOf: url),
            let contents = String(data: data, encoding: .utf8),
            !contents.isEmpty, !UserDefaults.standard.isPairingReset { return contents }
         if let plistString = Bundle.main.object(forInfoDictionaryKey: "ALTPairingFile") as? String,
@@ -387,15 +286,13 @@ final class PairingFileManager {
         )
         alert.addAction(UIAlertAction(title: NSLocalizedString("Help", comment: ""), style: .default) { _ in
             if let url = URL(string: "https://docs.sidestore.io/docs/advanced/pairing-file") { UIApplication.shared.open(url) }
-            sleep(2); exit(0)
         })
         alert.addAction(UIAlertAction(title: NSLocalizedString("Browse without pairing", comment: ""), style: .cancel) { _ in
             UserDefaults.standard.set(true, forKey: aeroPreviewWithoutPairingKey)
-            let toast = ToastView(
+            ToastView(
                 text: NSLocalizedString("Preview mode", comment: ""),
                 detailText: NSLocalizedString("Add a pairing file in Settings to install, refresh, or use device features.", comment: "")
-            )
-            toast.show(in: vc)
+            ).show(in: vc)
         })
         alert.addAction(UIAlertAction(title: NSLocalizedString("Choose File…", comment: ""), style: .default) { _ in
             var types = UTType.types(tag: "plist", tagClass: .filenameExtension, conformingTo: nil)
@@ -412,16 +309,12 @@ final class PairingFileManager {
     }
 
     func startMinimuxerIfPossible(_ pairingString: String, presenter: UIViewController?) {
-        #if targetEnvironment(simulator)
-        return
-        #else
+        #if !targetEnvironment(simulator)
         do {
             retargetUsbmuxdAddr()
             let documentsDirectory = FileManager.default.documentsDirectory.absoluteString
-            let loggingEnabled = UserDefaults.standard.isMinimuxerConsoleLoggingEnabled
-            try minimuxerStartWithLogger(pairingString, documentsDirectory, loggingEnabled)
-            let documentsDirectoryPath = FileManager.default.documentsDirectory.absoluteString
-            startAutoMounter(documentsDirectoryPath)
+            try minimuxerStartWithLogger(pairingString, documentsDirectory, UserDefaults.standard.isMinimuxerConsoleLoggingEnabled)
+            startAutoMounter(documentsDirectory)
         } catch {
             try? FileManager.default.removeItem(at: FileManager.default.documentsDirectory.appendingPathComponent(pairingFileName))
             guard let presenter else { return }
@@ -437,61 +330,29 @@ final class PairingFileManager {
     }
 }
 
-// MARK: - Pairing file import (survives launch → tab bar transition)
 final class PairingFileImportCoordinator: NSObject, UIDocumentPickerDelegate {
     static let shared = PairingFileImportCoordinator()
     weak var presentingViewController: UIViewController?
 
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         guard let url = urls.first else { return }
-        let isSecuredURL = url.startAccessingSecurityScopedResource()
-        defer {
-            if isSecuredURL { url.stopAccessingSecurityScopedResource() }
-        }
-
+        let secured = url.startAccessingSecurityScopedResource()
+        defer { if secured { url.stopAccessingSecurityScopedResource() } }
         do {
             let data = try Data(contentsOf: url)
-            guard let pairingString = String(data: data, encoding: .utf8) else {
-                showError(NSLocalizedString("Unable to read pairing file", comment: ""))
-                return
-            }
-            try pairingString.write(
-                to: FileManager.default.documentsDirectory.appendingPathComponent(pairingFileName),
-                atomically: true,
-                encoding: .utf8
-            )
+            guard let pairingString = String(data: data, encoding: .utf8) else { return }
+            try pairingString.write(to: FileManager.default.documentsDirectory.appendingPathComponent(pairingFileName), atomically: true, encoding: .utf8)
             UserDefaults.standard.set(false, forKey: aeroPreviewWithoutPairingKey)
             PairingFileManager.shared.startMinimuxerIfPossible(pairingString, presenter: presentingViewController)
-        } catch {
-            showError(NSLocalizedString("Unable to read pairing file", comment: ""))
-        }
-
+        } catch {}
         controller.dismiss(animated: true)
     }
 
     func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
         UserDefaults.standard.set(true, forKey: aeroPreviewWithoutPairingKey)
-        guard let host = presentingViewController else { return }
-        let toast = ToastView(
-            text: NSLocalizedString("Browsing without pairing", comment: ""),
-            detailText: NSLocalizedString("Add a pairing file in Settings when you're ready to install, refresh, or use device features.", comment: "")
-        )
-        toast.show(in: host)
-    }
-
-    private func showError(_ message: String) {
-        guard let host = presentingViewController else { return }
-        let alert = UIAlertController(
-            title: String(format: NSLocalizedString("Error launching %@", comment: ""), Bundle.main.altAppDisplayName),
-            message: message,
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: ""), style: .default))
-        host.present(alert, animated: true)
     }
 }
 
-// MARK: - SideJITManager
 final class SideJITManager {
     static let shared = SideJITManager()
     func checkAndPromptIfNeeded(presentingVC: UIViewController) {
@@ -499,14 +360,11 @@ final class SideJITManager {
         DispatchQueue.global().async {
             self.isSideJITServerDetected { result in
                 DispatchQueue.main.async {
-                    switch result {
-                    case .success():
-                        let alert = UIAlertController(title: "SideJITServer Detected", message: "Would you like to enable SideJITServer", preferredStyle: .alert)
-                        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in UserDefaults.standard.sidejitenable = true })
-                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-                        presentingVC.present(alert, animated: true)
-                    case .failure(_): print("Cannot find sideJITServer")
-                    }
+                    guard case .success = result else { return }
+                    let alert = UIAlertController(title: "SideJITServer Detected", message: "Would you like to enable SideJITServer", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in UserDefaults.standard.sidejitenable = true })
+                    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                    presentingVC.present(alert, animated: true)
                 }
             }
         }
@@ -515,9 +373,7 @@ final class SideJITManager {
     func askForNetwork() {
         let address = UserDefaults.standard.textInputSideJITServerurl ?? ""
         let SJSURL = address.isEmpty ? "http://sidejitserver._http._tcp.local:8080" : address
-        URLSession.shared.dataTask(with: URL(string: "\(SJSURL)/re/")!) { data, resp, err in
-            print("data: \(String(describing: data)), response: \(String(describing: resp)), error: \(String(describing: err))")
-        }.resume()
+        URLSession.shared.dataTask(with: URL(string: "\(SJSURL)/re/")!).resume()
     }
 
     func isSideJITServerDetected(completion: @escaping (Result<Void, Error>) -> Void) {
@@ -525,8 +381,7 @@ final class SideJITManager {
         let SJSURL = address.isEmpty ? "http://sidejitserver._http._tcp.local:8080" : address
         guard let url = URL(string: SJSURL) else { return }
         URLSession.shared.dataTask(with: url) { _, _, error in
-            if let error = error { completion(.failure(error)); return }
-            completion(.success(()))
+            if let error { completion(.failure(error)) } else { completion(.success(())) }
         }.resume()
     }
 }

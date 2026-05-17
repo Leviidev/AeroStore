@@ -576,7 +576,7 @@
         <!--My Apps-->
         <scene sceneID="EC8-Sf-AF9">
             <objects>
-                <collectionViewController id="hv7-Ar-voT" customClass="MyAppsViewController" customModule="SideStore" customModuleProvider="target" sceneMemberID="viewController">
+                <collectionViewController storyboardIdentifier="myAppsViewController" id="hv7-Ar-voT" customClass="MyAppsViewController" customModule="SideStore" customModuleProvider="target" sceneMemberID="viewController">
                     <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" id="Jrp-gi-4Df">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

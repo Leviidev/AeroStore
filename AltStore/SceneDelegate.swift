@@ -27,13 +27,43 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate
             $0.tintColor = .altPrimary
         }
 
+        self.window = windowScene.windows.first { $0.isKeyWindow } ?? windowScene.windows.first
+        windowScene.windows.forEach {
+            $0.backgroundColor = .systemBackground
+            $0.tintColor = .altPrimary
+        }
+
         DispatchQueue.main.async {
             FluxAppearancePreference.applyToAllWindows()
         }
-        
+
+        scheduleLaunchSafetyNet()
+
         if let context = connectionOptions.urlContexts.first
         {
             self.open(context)
+        }
+    }
+
+    func sceneDidBecomeActive(_ scene: UIScene)
+    {
+        scheduleLaunchSafetyNet()
+    }
+
+    private func scheduleLaunchSafetyNet()
+    {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            Task { @MainActor in
+                guard DatabaseManager.shared.isStarted || AppLaunchCoordinator.isMainInterfaceInstalled else {
+                    DatabaseManager.shared.start { _ in
+                        Task { @MainActor in
+                            AppLaunchCoordinator.installMainInterfaceIfNeeded(reason: "scene safety net after DB")
+                        }
+                    }
+                    return
+                }
+                AppLaunchCoordinator.installMainInterfaceIfNeeded(reason: "scene safety net")
+            }
         }
     }
 

@@ -2356,6 +2356,7 @@
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER)";
 				INFOPLIST_KEY_CFBundleDisplayName = AeroStore;
+				PRODUCT_MODULE_NAME = SideStore;
 				PRODUCT_NAME = AeroStore;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
@@ -2410,6 +2411,7 @@
 				OTHER_LDFLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = "$(PRODUCT_BUNDLE_IDENTIFIER)";
 				INFOPLIST_KEY_CFBundleDisplayName = AeroStore;
+				PRODUCT_MODULE_NAME = SideStore;
 				PRODUCT_NAME = AeroStore;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
