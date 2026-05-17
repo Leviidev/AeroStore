@@ -22,7 +22,13 @@ final class AeroLogoView: UIImageView {
     }
 
     private func setup() {
-        image = UIImage(named: "AeroStoreMark")
+        if let image = UIImage(named: "AeroStoreMark") {
+            self.image = image
+        } else {
+            print("⚠️ AeroLogoView: AeroStoreMark image not found, using fallback")
+            // Create a simple fallback view
+            backgroundColor = .systemGray5
+        }
         contentMode = .scaleAspectFit
         clipsToBounds = true
         layer.cornerCurve = .continuous

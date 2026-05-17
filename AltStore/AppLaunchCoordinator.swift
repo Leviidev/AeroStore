@@ -27,29 +27,44 @@ enum AppLaunchCoordinator {
     static func installMainInterface(in window: UIWindow, animated: Bool) {
         guard !didInstallMainInterface else { return }
 
-        let tabBar = TabBarController.makeMainInterface()
-        tabBar.loadViewIfNeeded()
-        tabBar.view.setNeedsLayout()
-        tabBar.view.layoutIfNeeded()
-        tabBar.selectedViewController?.loadViewIfNeeded()
+        do {
+            print("⏳ AppLaunchCoordinator: Creating TabBarController...")
+            let tabBar = TabBarController.makeMainInterface()
+            print("✅ AppLaunchCoordinator: TabBarController created")
 
-        window.backgroundColor = .systemBackground
-        window.tintColor = .altPrimary
+            tabBar.loadViewIfNeeded()
+            tabBar.view.setNeedsLayout()
+            tabBar.view.layoutIfNeeded()
+            tabBar.selectedViewController?.loadViewIfNeeded()
 
-        let applyRoot = {
-            window.rootViewController = tabBar
+            window.backgroundColor = .systemBackground
+            window.tintColor = .altPrimary
+
+            let applyRoot = {
+                window.rootViewController = tabBar
+                window.makeKeyAndVisible()
+                FluxAppearancePreference.applyToAllWindows()
+            }
+
+            if animated {
+                UIView.transition(with: window, duration: 0.25, options: .transitionCrossDissolve, animations: applyRoot)
+            } else {
+                applyRoot()
+            }
+
+            didInstallMainInterface = true
+            print("✅ AppLaunchCoordinator: main interface installed (\(tabBar.viewControllers?.count ?? 0) tabs)")
+        } catch {
+            print("❌ AppLaunchCoordinator: Failed to install main interface: \(error)")
+            // Create fallback simple view controller
+            let fallbackVC = UIViewController()
+            fallbackVC.view.backgroundColor = .systemBackground
+            fallbackVC.title = "AeroStore"
+            window.rootViewController = fallbackVC
             window.makeKeyAndVisible()
-            FluxAppearancePreference.applyToAllWindows()
+            didInstallMainInterface = true
+            print("⚠️ AppLaunchCoordinator: Using fallback interface")
         }
-
-        if animated {
-            UIView.transition(with: window, duration: 0.25, options: .transitionCrossDissolve, animations: applyRoot)
-        } else {
-            applyRoot()
-        }
-
-        didInstallMainInterface = true
-        print("✅ AppLaunchCoordinator: main interface installed (\(tabBar.viewControllers?.count ?? 0) tabs)")
     }
 
     @MainActor

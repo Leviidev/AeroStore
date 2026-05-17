@@ -23,10 +23,27 @@ final class LaunchViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("⏳ LaunchViewController: viewDidLoad started")
         view.backgroundColor = .systemBackground
-        splashView = SplashView(frame: view.bounds, appName: Bundle.main.altAppDisplayName)
-        splashView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.addSubview(splashView)
+        do {
+            splashView = SplashView(frame: view.bounds, appName: Bundle.main.altAppDisplayName)
+            splashView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            view.addSubview(splashView)
+            print("✅ LaunchViewController: SplashView created successfully")
+        } catch {
+            print("❌ LaunchViewController: Failed to create SplashView: \(error)")
+            // Fallback - just show a simple label
+            let label = UILabel()
+            label.text = Bundle.main.altAppDisplayName
+            label.font = .systemFont(ofSize: 24, weight: .bold)
+            label.textAlignment = .center
+            label.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(label)
+            NSLayoutConstraint.activate([
+                label.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            ])
+        }
     }
 
     override func viewDidAppear(_ animated: Bool) {
