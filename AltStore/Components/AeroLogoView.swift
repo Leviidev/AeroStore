@@ -7,6 +7,10 @@ import UIKit
 
 /// Displays the AeroStore app mark from `AeroStoreMark` in the asset catalog.
 final class AeroLogoView: UIImageView {
+    convenience init() {
+        self.init(frame: .zero)
+    }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
