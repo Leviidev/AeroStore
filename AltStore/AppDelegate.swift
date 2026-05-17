@@ -83,7 +83,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             FluxStikJITHostBootstrap.prepareIntegrations()
             print("✅ FluxStikJIT integrations prepared")
 
-            // Recreate Database if requested
+            // Recreate Database if requested or if there's a model incompatibility
             // NOTE: Userdefaults are local to the aerostore.app sandbox and are not shared
             if UserDefaults.standard.recreateDatabaseOnNextStart{
                 print("⏳ Recreating database as requested...")
@@ -93,6 +93,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 // re-create database
                 DatabaseManager.recreateDatabase()
                 print("✅ Database recreated")
+            } else {
+                // Force database recreation to fix model incompatibility
+                print("⏳ Forcing database recreation to fix model incompatibility...")
+                UserDefaults.standard.recreateDatabaseOnNextStart = true
+                DatabaseManager.recreateDatabase()
+                print("✅ Database recreated to fix model incompatibility")
             }
 
             // Start DatabaseManager without blocking the main thread (LaunchViewController finishes UI when ready).
