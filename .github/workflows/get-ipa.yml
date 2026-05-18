@@ -70,6 +70,8 @@ jobs:
       - name: Archive (unsigned)
         run: |
           set -euo pipefail
+          # Prepend Homebrew so all Xcode build-phase scripts (e.g. em_proxy fetch) can find wget.
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           P="${{ steps.proj.outputs.dir }}"
           ROOT="${GITHUB_WORKSPACE:?}"
           PROJ="${ROOT%/}/${P#./}/AltStore.xcodeproj"
@@ -90,17 +92,16 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
             SWIFT_OPTIMIZATION_LEVEL="-Onone" \
             2>&1 | tee "$LOG"
           XC="${PIPESTATUS[0]}"
           set -e
           if [[ "$XC" -ne 0 ]]; then
             echo "::error::xcodebuild archive failed (exit $XC)"
-            echo "---- Last 100 lines of xcode-archive.log ----"
-            tail -n 100 "$LOG" || true
-            echo "---- Errors / failures in log ----"
-            grep -iE ' error: |fatal error:|following build commands failed|BUILD FAILED|Command .* failed|PhaseScriptExecution|Error:' "$LOG" | tail -100 || true
+            echo "---- Last 200 lines of xcode-archive.log ----"
+            tail -n 200 "$LOG" || true
+            echo "---- Linker / compiler errors ----"
+            grep -iE 'undefined symbol|library not found|linker command failed| error: |fatal error:|following build commands failed|BUILD FAILED' "$LOG" | tail -150 || true
             exit "$XC"
           fi
 

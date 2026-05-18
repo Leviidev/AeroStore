@@ -48,18 +48,16 @@ chmod +x ./fetch-prebuilt.sh
 test -f libem_proxy-ios.a && test -f libem_proxy-sim.a && test -f em_proxy.h
 echo "em_proxy prebuilts OK."
 
-# Patch fetch-prebuilt.sh to be idempotent when called again from the Xcode build phase.
-# The Xcode build phase runs fetch-prebuilt.sh with a restricted PATH (no Homebrew),
-# so wget may not be available. Since we already fetched the prebuilts above, we replace
-# fetch-prebuilt.sh with a wrapper that exits 0 immediately when files exist.
+# ── Layer 1: Wrap fetch-prebuilt.sh so the Xcode build phase exits early ──────
+# The Xcode build phase calls ./fetch-prebuilt.sh under /bin/sh with a restricted
+# PATH (no Homebrew), so wget is not found. Replace the script with an idempotent
+# wrapper that skips the download when the prebuilts already exist.
 FETCH_ORIG="${EM}/fetch-prebuilt.sh.orig"
 if [[ ! -f "${FETCH_ORIG}" ]]; then
   cp "${EM}/fetch-prebuilt.sh" "${FETCH_ORIG}"
   cat > "${EM}/fetch-prebuilt.sh" << 'WRAPPER_EOF'
 #!/usr/bin/env bash
-# Idempotent wrapper: skip download if prebuilts are already present.
-# The CI pre-build step (scripts/ci/fetch_em_proxy_prebuilt.sh) fetches these
-# before xcodebuild runs, so the Xcode build phase just needs to verify they exist.
+# Idempotent wrapper – skip download when prebuilts are already present.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 if [[ -f "${SCRIPT_DIR}/libem_proxy-ios.a" && \
       -f "${SCRIPT_DIR}/libem_proxy-sim.a" && \
@@ -67,10 +65,53 @@ if [[ -f "${SCRIPT_DIR}/libem_proxy-ios.a" && \
     echo "em_proxy prebuilts already present – skipping download."
     exit 0
 fi
-# Files missing: add Homebrew to PATH and delegate to original script.
-export PATH="/usr/local/bin:/opt/homebrew/bin:${PATH}"
+export PATH="/opt/homebrew/bin:/usr/local/bin:${PATH}"
 exec "${SCRIPT_DIR}/fetch-prebuilt.sh.orig" "$@"
 WRAPPER_EOF
   chmod +x "${EM}/fetch-prebuilt.sh"
   echo "Patched em_proxy/fetch-prebuilt.sh to be idempotent in Xcode build phase."
+fi
+
+# ── Layer 2: Patch em_proxy.xcodeproj build phase script directly ─────────────
+# Belt-and-suspenders: rewrite the PBXShellScriptBuildPhase shellScript inside
+# em_proxy.xcodeproj/project.pbxproj to prepend Homebrew PATH and an early-exit
+# guard.  This fires even if the fetch-prebuilt.sh wrapper is somehow bypassed.
+EM_PBXPROJ="${EM}/em_proxy.xcodeproj/project.pbxproj"
+if [[ -f "${EM_PBXPROJ}" ]]; then
+  python3 - "${EM_PBXPROJ}" << 'PYEOF'
+import sys
+
+path = sys.argv[1]
+text = open(path, 'r').read()
+
+# Original shellScript value as stored in the pbxproj
+# (\n = script newline, \" = script double-quote, all literals in this string)
+ORIG = '"#!bash\\npwd\\nchmod +x ./fetch-prebuilt.sh \\n./fetch-prebuilt.sh em_proxy\\n"'
+
+# Replacement: add Homebrew to PATH and exit early when .a files already exist
+NEW = (
+    '"#!/bin/bash\\n'
+    'export PATH=\\"/opt/homebrew/bin:/usr/local/bin:${PATH}\\"\\n'
+    'SRCDIR=\\"${SRCROOT:-$(pwd)}\\"\\n'
+    'if [[ -f \\"${SRCDIR}/libem_proxy-ios.a\\" && '
+    '-f \\"${SRCDIR}/libem_proxy-sim.a\\" && '
+    '-f \\"${SRCDIR}/em_proxy.h\\" ]]; then\\n'
+    '    echo \\"em_proxy prebuilts present - skipping Xcode fetch phase.\\"; exit 0\\n'
+    'fi\\n'
+    'pwd\\n'
+    'chmod +x ./fetch-prebuilt.sh\\n'
+    './fetch-prebuilt.sh em_proxy\\n"'
+)
+
+if ORIG in text:
+    text = text.replace(ORIG, NEW, 1)
+    open(path, 'w').write(text)
+    print(f"Patched em_proxy.xcodeproj build phase: Homebrew PATH + idempotent guard added.")
+elif 'em_proxy prebuilts present' in text:
+    print("em_proxy.xcodeproj build phase already patched.")
+else:
+    print(f"WARNING: Could not locate original shellScript in {path}; xcodeproj not patched.", file=sys.stderr)
+PYEOF
+else
+  echo "em_proxy.xcodeproj not found at ${EM_PBXPROJ}; skipping xcodeproj patch." >&2
 fi
