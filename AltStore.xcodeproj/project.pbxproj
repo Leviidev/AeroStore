@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		68D569BE2E1B415700A5BA36 /* CodeEditorView in Frameworks */ = {isa = PBXBuildFile; productRef = 68D569BD2E1B415700A5BA36 /* CodeEditorView */; };
-		68D569C02E1B415700A5BA36 /* LanguageSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 68D569BF2E1B415700A5BA36 /* LanguageSupport */; };
 		178FB6C72F80B8BD00C92806 /* NSAttributedString+Markdown.m in Sources */ = {isa = PBXBuildFile; fileRef = A8BD2FA82F54401E0045335F /* NSAttributedString+Markdown.m */; };
 		A8036E332F545D5400097AF1 /* userpref.h in Headers */ = {isa = PBXBuildFile; fileRef = A8BD30332F5440300045335F /* userpref.h */; };
 		A8036E342F545D6000097AF1 /* userpref.c in Sources */ = {isa = PBXBuildFile; fileRef = A8BD30342F5440300045335F /* userpref.c */; };
@@ -756,8 +754,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				68D569C02E1B415700A5BA36 /* LanguageSupport in Frameworks */,
-				68D569BE2E1B415700A5BA36 /* CodeEditorView in Frameworks */,
 				A8037A012F54661200097AF1 /* libimobiledevice.a in Frameworks */,
 				A8B646012D70C23E00125819 /* MarkdownKit in Frameworks */,
 				A8037A0E2F54664300097AF1 /* libem_proxy_swift.a in Frameworks */,
@@ -1471,8 +1467,6 @@
 			);
 			name = SideStore;
 			packageProductDependencies = (
-				68D569BD2E1B415700A5BA36 /* CodeEditorView */,
-				68D569BF2E1B415700A5BA36 /* LanguageSupport */,
 				A803924A2F552F4C00097AF1 /* Minimuxer */,
 				A8B646002D70C23E00125819 /* MarkdownKit */,
 				A83FE3662EC90482005ACE9A /* Starscream */,
@@ -1537,7 +1531,6 @@
 				A83FE36D2EC90512005ACE9A /* XCRemoteSwiftPackageReference "KeychainAccess" */,
 				A80392492F552F4C00097AF1 /* XCRemoteSwiftPackageReference "minimuxer" */,
 				A803924C2F552FDA00097AF1 /* XCLocalSwiftPackageReference "AltSign" */,
-				68D569BC2E1B415700A5BA36 /* XCRemoteSwiftPackageReference "CodeEditorView" */,
 			);
 			preferredProjectObjectVersion = 50;
 			productRefGroup = BFD2476B2284B9A500981D42 /* Products */;
@@ -2541,14 +2534,6 @@
 				minimumVersion = 10.0.0;
 			};
 		};
-		68D569BC2E1B415700A5BA36 /* XCRemoteSwiftPackageReference "CodeEditorView" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mchakravarty/CodeEditorView";
-			requirement = {
-				kind = exactVersion;
-				version = 0.15.4;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCLocalSwiftPackageReference section */
@@ -2608,16 +2593,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A83FE36D2EC90512005ACE9A /* XCRemoteSwiftPackageReference "KeychainAccess" */;
 			productName = KeychainAccess;
-		};
-		68D569BD2E1B415700A5BA36 /* CodeEditorView */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 68D569BC2E1B415700A5BA36 /* XCRemoteSwiftPackageReference "CodeEditorView" */;
-			productName = CodeEditorView;
-		};
-		68D569BF2E1B415700A5BA36 /* LanguageSupport */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 68D569BC2E1B415700A5BA36 /* XCRemoteSwiftPackageReference "CodeEditorView" */;
-			productName = LanguageSupport;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

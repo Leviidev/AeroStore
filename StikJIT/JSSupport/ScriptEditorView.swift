@@ -6,21 +6,13 @@
 //
 
 import SwiftUI
-import CodeEditorView
-import LanguageSupport
 
 struct ScriptEditorView: View {
     let scriptURL: URL
 
     @State private var scriptContent: String = ""
-    @State private var position: CodeEditor.Position = .init()
-    @State private var messages: Set<TextLocated<Message>> = []
-
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
-    private var editorTheme: CodeEditorView.Theme {
-        colorScheme == .dark ? CodeEditorView.Theme.defaultDark : CodeEditorView.Theme.defaultLight
-    }
 
     var body: some View {
         ZStack {
@@ -28,15 +20,11 @@ struct ScriptEditorView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                CodeEditor(
-                    text:     $scriptContent,
-                    position: $position,
-                    messages: $messages,
-                    language: LanguageConfiguration.none
-                )
-                .font(.system(.footnote, design: .monospaced))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .environment(\.codeEditorTheme, editorTheme)
+                TextEditor(text: $scriptContent)
+                    .font(.system(.footnote, design: .monospaced))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .scrollContentBackground(.hidden)
+                    .background(Color(UIColor.systemBackground))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .ignoresSafeArea(edges: .bottom)
