@@ -33,7 +33,13 @@ struct MainTabView: View {
             TabDescriptor(id: "deviceinfo", title: "Device Info", systemImage: "iphone.and.arrow.forward") { AnyView(DeviceInfoView()) },
             TabDescriptor(id: "profiles", title: "App Expiry", systemImage: "calendar.badge.clock") { AnyView(ProfileView()) },
             TabDescriptor(id: "processes", title: "Processes", systemImage: "rectangle.stack.person.crop") { AnyView(ProcessInspectorView()) },
-            TabDescriptor(id: "location", title: "Location", systemImage: "location") { AnyView(LocationSimulationView()) }
+            TabDescriptor(id: "location", title: "Location", systemImage: "location") {
+                if #available(iOS 17.0, *) {
+                    AnyView(LocationSimulationView())
+                } else {
+                    AnyView(Text("Location simulation requires iOS 17 or later.").foregroundStyle(.secondary))
+                }
+            }
         ]
         return tabs
     }

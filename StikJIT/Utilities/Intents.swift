@@ -3,6 +3,7 @@ import Foundation
 
 // MARK: - Installed App Entity
 
+@available(iOS 16.0, *)
 struct InstalledAppEntity: AppEntity {
     static var typeDisplayRepresentation = TypeDisplayRepresentation(
         name: "Installed App",
@@ -18,6 +19,7 @@ struct InstalledAppEntity: AppEntity {
     }
 }
 
+@available(iOS 16.0, *)
 struct InstalledAppQuery: EntityStringQuery {
     func entities(for identifiers: [String]) async throws -> [InstalledAppEntity] {
         let allApps = (try? JITEnableContext.shared.getAppList()) ?? [:]
@@ -47,6 +49,7 @@ struct InstalledAppQuery: EntityStringQuery {
 
 // MARK: - Running Process Entity
 
+@available(iOS 16.0, *)
 struct RunningProcessEntity: AppEntity {
     static var typeDisplayRepresentation = TypeDisplayRepresentation(
         name: "Running Process",
@@ -87,6 +90,7 @@ struct RunningProcessEntity: AppEntity {
     }
 }
 
+@available(iOS 16.0, *)
 struct RunningProcessQuery: EntityStringQuery {
     func entities(for identifiers: [String]) async throws -> [RunningProcessEntity] {
         // Always fetch fresh so PIDs are current
@@ -131,6 +135,7 @@ struct RunningProcessQuery: EntityStringQuery {
 
 // MARK: - Enable JIT Intent
 
+@available(iOS 16.0, *)
 struct EnableJITIntent: AppIntent, ForegroundContinuableIntent {
     static var title: LocalizedStringResource = "Enable JIT"
     static var description = IntentDescription(
@@ -139,8 +144,7 @@ struct EnableJITIntent: AppIntent, ForegroundContinuableIntent {
     )
     static var openAppWhenRun: Bool = true
 
-    @Parameter(title: "App", description: "The app to enable JIT for",
-               requestValueDialog: "Which app would you like to enable JIT for?")
+    @Parameter(title: "App", description: "The app to enable JIT for")
     var app: InstalledAppEntity?
 
     static var parameterSummary: some ParameterSummary {
@@ -205,6 +209,7 @@ struct EnableJITIntent: AppIntent, ForegroundContinuableIntent {
 
 // MARK: - Kill Process Intent
 
+@available(iOS 16.0, *)
 struct KillProcessIntent: AppIntent {
     static var title: LocalizedStringResource = "Kill Process"
     static var description = IntentDescription(
@@ -213,8 +218,7 @@ struct KillProcessIntent: AppIntent {
     )
     static var openAppWhenRun: Bool = false
 
-    @Parameter(title: "Process", description: "The process to terminate",
-               requestValueDialog: "Which process would you like to kill?")
+    @Parameter(title: "Process", description: "The process to terminate")
     var process: RunningProcessEntity?
 
     @Parameter(title: "Process ID", description: "A specific PID to kill instead of selecting a process")

@@ -386,6 +386,7 @@ final class LocationSearchCompleter: NSObject, ObservableObject, MKLocalSearchCo
     }
 }
 
+@available(iOS 17.0, *)
 struct LocationSimulationView: View {
     // Serial queue: the location simulation helpers share process-wide state, so
     // serialising all calls avoids handle lifetime races.

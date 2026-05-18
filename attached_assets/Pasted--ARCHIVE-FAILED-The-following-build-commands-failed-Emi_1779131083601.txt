@@ -1,0 +1,55 @@
+** ARCHIVE FAILED **
+
+
+The following build commands failed:
+	EmitSwiftModule normal arm64 (in target 'SideStore' from project 'AltStore')
+	SwiftEmitModule normal arm64 Emitting\ module\ for\ AeroStore (in target 'SideStore' from project 'AltStore')
+	Archiving project AltStore with scheme SideStore
+(3 failures)
+---- Errors / failures in log ----
+PhaseScriptExecution Fetch\ prebuilt\ binaries /Users/runner/work/FluxStore/FluxStore/build/ci-DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/SideStore/IntermediateBuildFilesPath/em_proxy.build/Debug-iphoneos/em_proxy-staticlib.build/Script-9987603529A4610700818586.sh (in target 'em_proxy-staticlib' from project 'em_proxy')
+PhaseScriptExecution Build\ Minimuxer\ Rust\ Bridge /Users/runner/work/FluxStore/FluxStore/build/ci-DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/SideStore/IntermediateBuildFilesPath/AltStore.build/Debug-iphoneos/SideStore.build/Script-A8D768282F52F0D4002356C4.sh (in target 'SideStore' from project 'AltStore')
+class IntentError: NSError, CustomLocalizedStringResourceConvertible
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:7:44: error: 'TypeDisplayRepresentation' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:8:15: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:9:24: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:9:26: error: 'appendInterpolation(placeholder:)' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:16:32: error: 'DisplayRepresentation' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:51:44: error: 'TypeDisplayRepresentation' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:52:15: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:53:24: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:53:26: error: 'appendInterpolation(placeholder:)' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:63:32: error: 'DisplayRepresentation' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:142:6: error: 'init(title:description:default:requestValueDialog:requestDisambiguationDialog:inputConnectionBehavior:)' is only available in iOS 18.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:142:23: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:142:43: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:143:36: error: 'IntentDialog' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:135:23: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:135:49: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:136:30: error: 'IntentDescription' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:137:9: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:138:23: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:142:6: error: 'Parameter' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:146:39: error: 'ParameterSummary' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:150:41: error: 'IntentResult' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:150:56: error: 'ReturnsValue' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:216:6: error: 'init(title:description:default:requestValueDialog:requestDisambiguationDialog:inputConnectionBehavior:)' is only available in iOS 18.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:216:23: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:216:47: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:217:36: error: 'IntentDialog' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:220:6: error: 'init(title:description:default:controlStyle:inclusiveRange:requestValueDialog:inputConnectionBehavior:)' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:220:23: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:220:50: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:209:23: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:209:49: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:210:30: error: 'IntentDescription' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:211:9: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:212:23: error: 'LocalizedStringResource' is only available in iOS 16 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:216:6: error: 'Parameter' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:220:6: error: 'Parameter' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:223:39: error: 'ParameterSummary' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:227:41: error: 'IntentResult' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Utilities/Intents.swift:227:56: error: 'ReturnsValue' is only available in iOS 16.0 or newer
+/Users/runner/work/FluxStore/FluxStore/StikJIT/Views/MapSelectionView.swift:396:34: error: 'MapCameraPosition' is only available in iOS 17.0 or newer
+The following build commands failed:
+Error: Process completed with exit code 65.

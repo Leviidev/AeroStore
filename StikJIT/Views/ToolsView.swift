@@ -23,7 +23,13 @@ struct ToolsView: View {
             ToolItem(id: "deviceinfo", title: "Device Info", detail: "View detailed device metadata", systemImage: "iphone.and.arrow.forward", destination: AnyView(DeviceInfoView())),
             ToolItem(id: "profiles", title: "App Expiry", detail: "Check app expiration dates", systemImage: "calendar.badge.clock", destination: AnyView(ProfileView())),
             ToolItem(id: "processes", title: "Processes", detail: "Inspect running apps", systemImage: "rectangle.stack.person.crop", destination: AnyView(ProcessInspectorView())),
-            ToolItem(id: "location", title: "Location Simulation", detail: "Simulate GPS location", systemImage: "location", destination: AnyView(LocationSimulationView()))
+            ToolItem(id: "location", title: "Location Simulation", detail: "Simulate GPS location", systemImage: "location", destination: {
+                if #available(iOS 17.0, *) {
+                    return AnyView(LocationSimulationView())
+                } else {
+                    return AnyView(Text("Location simulation requires iOS 17 or later.").foregroundStyle(.secondary))
+                }
+            }())
         ]
     }
 
