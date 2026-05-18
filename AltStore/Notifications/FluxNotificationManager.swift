@@ -220,6 +220,42 @@ class FluxNotificationManager: NSObject {
         }
     }
     
+    // MARK: - Certificate Revocation Alerts
+
+    func scheduleCertificateRevocationAlert(teamName: String) {
+        let content = UNMutableNotificationContent()
+        content.title = NSLocalizedString("Certificate Revoked", comment: "")
+        content.body = String(
+            format: NSLocalizedString(
+                "Your signing certificate for team \"%@\" has been revoked by Apple. Open AeroStore to re-authenticate and re-sign your apps.",
+                comment: ""
+            ),
+            teamName
+        )
+        content.sound = .defaultCritical
+        content.badge = 1
+        content.userInfo = [
+            "type": "certificate_revoked",
+            "teamName": teamName
+        ]
+
+        let identifier = "certificate_revoked_\(teamName)"
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+
+        notificationCenter.add(request) { error in
+            if let error = error {
+                print("Failed to schedule certificate revocation alert: \(error)")
+            }
+        }
+
+        NotificationCenter.default.post(
+            name: .fluxCertificateRevoked,
+            object: nil,
+            userInfo: ["teamName": teamName]
+        )
+    }
+
     // MARK: - Settings Integration
     
     func updateNotificationSettings() {
@@ -255,6 +291,8 @@ extension FluxNotificationManager: UNUserNotificationCenterDelegate {
             handleRefreshReminder(userInfo: userInfo)
         case "update_available":
             handleUpdateAvailable(userInfo: userInfo)
+        case "certificate_revoked":
+            handleCertificateRevoked(userInfo: userInfo)
         default:
             break
         }
@@ -277,6 +315,14 @@ extension FluxNotificationManager: UNUserNotificationCenterDelegate {
             "appBundleIdentifier": appBundleIdentifier
         ])
     }
+
+    private func handleCertificateRevoked(userInfo: [AnyHashable: Any]) {
+        NotificationCenter.default.post(
+            name: .fluxCertificateRevoked,
+            object: nil,
+            userInfo: userInfo
+        )
+    }
 }
 
 // MARK: - Notification Names
@@ -284,6 +330,7 @@ extension FluxNotificationManager: UNUserNotificationCenterDelegate {
 extension Notification.Name {
     static let fluxRefreshApp = Notification.Name("FluxRefreshApp")
     static let fluxShowApp = Notification.Name("FluxShowApp")
+    static let fluxCertificateRevoked = Notification.Name("FluxCertificateRevoked")
 }
 
 // MARK: - UpdateType Extension

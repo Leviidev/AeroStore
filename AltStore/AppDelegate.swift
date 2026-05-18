@@ -535,13 +535,30 @@ private extension AppDelegate
                         guard previousVersion != latestSupportedVersion.version || previousBuildVersion != latestSupportedVersion.buildVersion  else { continue }
                     }
                     
-                    let content = UNMutableNotificationContent()
-                    content.title = NSLocalizedString("New Update Available", comment: "")
-                    content.body = String(format: NSLocalizedString("%@ %@ is now available for download.", comment: ""), update.name, latestSupportedVersion.localizedVersion)
-                    content.sound = .default
-                    
-                    let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-                    UNUserNotificationCenter.current().add(request)
+                    // Determine update type from version strings
+                    let updateType: UpdateType
+                    if latestSupportedVersion.version.lowercased().contains("nightly") {
+                        updateType = .nightly
+                    } else if update.version.lowercased().contains("nightly") {
+                        updateType = .stableFromNightly
+                    } else {
+                        updateType = .standard
+                    }
+
+                    if UserDefaults.standard.isUpdateNotificationsEnabled {
+                        FluxNotificationManager.shared.scheduleUpdateNotification(
+                            for: update,
+                            newVersion: latestSupportedVersion.localizedVersion,
+                            updateType: updateType
+                        )
+                    } else {
+                        let content = UNMutableNotificationContent()
+                        content.title = NSLocalizedString("New Update Available", comment: "")
+                        content.body = String(format: NSLocalizedString("%@ %@ is now available for download.", comment: ""), update.name, latestSupportedVersion.localizedVersion)
+                        content.sound = .default
+                        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+                        UNUserNotificationCenter.current().add(request)
+                    }
                 }
                 
                 for newsItem in newsItems

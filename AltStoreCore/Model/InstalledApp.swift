@@ -353,9 +353,11 @@ public extension InstalledApp
     
     class func fetchAppsForBackgroundRefresh(in context: NSManagedObjectContext) -> [InstalledApp]
     {
-        // Date 6 hours before now.
-        let date = Date().addingTimeInterval(-1 * 6 * 60 * 60)
-        
+        // Use 1 hour as the NSPredicate cutoff so apps with short per-app schedules
+        // are not excluded early. Per-app intervals are applied in-memory below.
+        let minimumIntervalHours: Double = 1.0
+        let date = Date().addingTimeInterval(-minimumIntervalHours * 60 * 60)
+
         let predicate = NSPredicate(format: "(%K == YES) AND (%K < %@) AND (%K != %@) AND (%K == nil OR %K == NO OR %K == YES)",
                                     #keyPath(InstalledApp.isActive),
                                     #keyPath(InstalledApp.refreshedDate), date as NSDate,
@@ -364,10 +366,20 @@ public extension InstalledApp
                                     #keyPath(InstalledApp.storeApp.isPledgeRequired),
                                     #keyPath(InstalledApp.storeApp.isPledged)
         )
-        
+
+        // Apply per-app refresh intervals: only include an app if it has been
+        // refreshed more than <interval> hours ago (default: 6 hours).
+        let customIntervals = UserDefaults.standard.appRefreshIntervals
+        let defaultHours: Double = 6.0
+
         var installedApps = InstalledApp.all(satisfying: predicate,
                                              sortedBy: [NSSortDescriptor(keyPath: \InstalledApp.expirationDate, ascending: true)],
                                              in: context)
+            .filter { app in
+                let hours = Double(customIntervals[app.bundleIdentifier] ?? Int(defaultHours))
+                let cutoff = Date().addingTimeInterval(-hours * 3600)
+                return app.refreshedDate < cutoff
+            }
         
         if let altStoreApp = InstalledApp.fetchAltStore(in: context), altStoreApp.refreshedDate < date
         {

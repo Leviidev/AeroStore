@@ -33,6 +33,8 @@ public extension UserDefaults
     @NSManaged var isIdleTimeoutDisableEnabled: Bool
     @NSManaged var isAppLimitDisabled: Bool
     @NSManaged var isBetaUpdatesEnabled: Bool
+    @NSManaged var isUpdateNotificationsEnabled: Bool
+    @NSManaged var isCertificateRevocationAlertEnabled: Bool
     @NSManaged var customizeAppId: Bool
     @NSManaged var isExportResignedAppEnabled: Bool
     @NSManaged var isVerboseOperationsLoggingEnabled: Bool
@@ -87,7 +89,7 @@ public extension UserDefaults
     }
     @NSManaged @objc(activeAppsLimit) private var _activeAppsLimit: NSNumber?
     
-    // Including "MacDirtyCow" in name triggers false positives with malware detectors 🤷‍♂️
+    // Including "MacDirtyCow" in name triggers false positives with malware detectors
     @NSManaged var isCowExploitSupported: Bool
     
     @NSManaged var permissionCheckingDisabled: Bool
@@ -114,12 +116,7 @@ public extension UserDefaults
         (ProcessInfo.processInfo.isOperatingSystemAtLeast(ios14) && !ProcessInfo.processInfo.isOperatingSystemAtLeast(ios15_7_2)) ||
         (ProcessInfo.processInfo.isOperatingSystemAtLeast(ios16) && !ProcessInfo.processInfo.isOperatingSystemAtLeast(ios16_2))
         
-        // TODO: @mahee96: why should the permissions checking be any different, for now, it shouldn't so commented debug mode code
-//        #if DEBUG
-//        let permissionCheckingDisabled = true
-//        #else
         let permissionCheckingDisabled = false
-//        #endif
         
         // Pre-iOS 15 doesn't support custom sorting, so default to sorting by name.
         // Otherwise, default to `default` sorting (a.k.a. "source order").
@@ -128,13 +125,15 @@ public extension UserDefaults
         let defaults = [
             #keyPath(UserDefaults.isAppLimitDisabled): false,
             #keyPath(UserDefaults.isBetaUpdatesEnabled): false,
+            #keyPath(UserDefaults.isUpdateNotificationsEnabled): true,
+            #keyPath(UserDefaults.isCertificateRevocationAlertEnabled): true,
             #keyPath(UserDefaults.customizeAppId): false,
             #keyPath(UserDefaults.isExportResignedAppEnabled): false,
             #keyPath(UserDefaults.isDebugModeEnabled): false,
             #keyPath(UserDefaults.isVerboseOperationsLoggingEnabled): false,
-            #keyPath(UserDefaults.isMinimuxerConsoleLoggingEnabled): false, // minimuxer logging is disabled by default for console loggin
-            #keyPath(UserDefaults.isMinimuxerStatusCheckEnabled): false, // minimuxer status check is disabled by default to support LocalDevVPN based cellular refresh
-            #keyPath(UserDefaults.recreateDatabaseOnNextStart): false, 
+            #keyPath(UserDefaults.isMinimuxerConsoleLoggingEnabled): false,
+            #keyPath(UserDefaults.isMinimuxerStatusCheckEnabled): false,
+            #keyPath(UserDefaults.recreateDatabaseOnNextStart): false,
             #keyPath(UserDefaults.isBackgroundRefreshEnabled): true,
             #keyPath(UserDefaults.enableEMPforWireguard): false,
             #keyPath(UserDefaults.isIdleTimeoutDisableEnabled): true,
@@ -166,7 +165,28 @@ public extension UserDefaults
         #endif
     }
 
-    /// Maps **source app bundle ID** → **full bundle ID** to use when installing (with “App ID customization” on).
+    /// Maps bundle ID to refresh interval in hours for per-app background refresh scheduling.
+    /// A missing entry means the app uses the system default (6 hours).
+    private static let appRefreshIntervalsKey = "AeroStore.appRefreshIntervals"
+
+    @nonobjc
+    public var appRefreshIntervals: [String: Int] {
+        get {
+            guard let data = UserDefaults.standard.data(forKey: UserDefaults.appRefreshIntervalsKey),
+                  let dict = try? JSONDecoder().decode([String: Int].self, from: data)
+            else { return [:] }
+            return dict
+        }
+        set {
+            if newValue.isEmpty {
+                UserDefaults.standard.removeObject(forKey: UserDefaults.appRefreshIntervalsKey)
+            } else if let data = try? JSONEncoder().encode(newValue) {
+                UserDefaults.standard.set(data, forKey: UserDefaults.appRefreshIntervalsKey)
+            }
+        }
+    }
+
+    /// Maps source app bundle ID to full bundle ID to use when installing (with "App ID customization" on).
     /// Always read/writes `UserDefaults.standard` regardless of the receiver.
     private static let sideloadBundleIdentifierOverridesKey = "AeroStore.sideloadBundleIdentifierOverrides"
 

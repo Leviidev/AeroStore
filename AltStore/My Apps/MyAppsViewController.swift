@@ -1483,6 +1483,42 @@ private extension MyAppsViewController
         }
     }
     
+    func showRefreshSchedulePicker(for installedApp: InstalledApp)
+    {
+        let manager = AppRefreshScheduleManager.shared
+        let currentHours = manager.refreshIntervalHours(for: installedApp.bundleIdentifier)
+
+        let alert = UIAlertController(
+            title: String(format: NSLocalizedString("Refresh Schedule: %@", comment: ""), installedApp.name),
+            message: NSLocalizedString("Choose how often this app should be refreshed in the background.", comment: ""),
+            preferredStyle: .actionSheet
+        )
+
+        for option in AppRefreshScheduleManager.availableIntervals {
+            let isSelected = option.hours == currentHours
+            let title = isSelected ? "✓ " + option.label : option.label
+            alert.addAction(UIAlertAction(title: title, style: .default) { _ in
+                manager.setRefreshIntervalHours(option.hours, for: installedApp.bundleIdentifier)
+            })
+        }
+
+        if manager.hasCustomInterval(for: installedApp.bundleIdentifier) {
+            alert.addAction(UIAlertAction(title: NSLocalizedString("Reset to Default (6h)", comment: ""), style: .destructive) { _ in
+                manager.resetToDefault(for: installedApp.bundleIdentifier)
+            })
+        }
+
+        alert.addAction(.cancel)
+
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = self.view
+            popover.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+
+        self.present(alert, animated: true, completion: nil)
+    }
+
     func remove(_ installedApp: InstalledApp)
     {
         let title = String(format: NSLocalizedString("Remove “%@” from AeroStore?", comment: ""), installedApp.name)
@@ -2094,6 +2130,7 @@ extension MyAppsViewController
             {
                 actions.append(openMenu)
                 actions.append(refreshAction)
+                actions.append(refreshScheduleAction)
             }
             else
             {
@@ -2186,10 +2223,23 @@ extension MyAppsViewController
             #endif
         }
         
+        let refreshScheduleTitle: String
+        if AppRefreshScheduleManager.shared.hasCustomInterval(for: installedApp.bundleIdentifier) {
+            let hours = AppRefreshScheduleManager.shared.refreshIntervalHours(for: installedApp.bundleIdentifier)
+            refreshScheduleTitle = String(format: NSLocalizedString("Refresh Schedule: %dh", comment: ""), hours)
+        } else {
+            refreshScheduleTitle = NSLocalizedString("Set Refresh Schedule", comment: "")
+        }
+
+        let refreshScheduleAction = UIAction(title: refreshScheduleTitle, image: UIImage(systemName: "clock.arrow.2.circlepath")) { [weak self] _ in
+            self?.showRefreshSchedulePicker(for: installedApp)
+        }
+
         // Change the order of entries to make changes to how the context menu is displayed
         let orderedActions = [
             openMenu,
             refreshAction,
+            refreshScheduleAction,
             activateAction,
             jitAction,
             changeIconMenu,

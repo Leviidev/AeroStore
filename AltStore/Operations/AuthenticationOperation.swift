@@ -648,7 +648,18 @@ private extension AuthenticationOperation
             do
             {
                 let certificates = try Result(certificates, error).get()
-                
+
+                // Detect certificate revocation: we had a cert in the keychain but Apple no
+                // longer lists it — it was revoked externally (e.g. via developer portal).
+                if !certificates.isEmpty,
+                   let p12Data = Keychain.shared.signingCertificate,
+                   let storedCert = ALTCertificate(p12Data: p12Data, password: nil),
+                   certificates.first(where: { $0.serialNumber == storedCert.serialNumber }) == nil,
+                   UserDefaults.standard.isCertificateRevocationAlertEnabled
+                {
+                    FluxNotificationManager.shared.scheduleCertificateRevocationAlert(teamName: team.name)
+                }
+
                 if
                     let data = Keychain.shared.signingCertificate,
                     let localCertificate = ALTCertificate(p12Data: data, password: nil),

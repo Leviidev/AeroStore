@@ -43,6 +43,8 @@ extension SettingsViewController
         case noIdleTimeout        
         case addToSiri
         case disableAppLimit
+        case updateNotifications
+        case certRevocationAlert
         
         static var allCases: [AppRefreshRow] {
             var c: [AppRefreshRow] = [.backgroundRefresh, .noIdleTimeout, .addToSiri]
@@ -52,6 +54,9 @@ extension SettingsViewController
             {
                 c.append(.disableAppLimit)
             }
+
+            c.append(.updateNotifications)
+            c.append(.certRevocationAlert)
             return c
         }
     }
@@ -839,6 +844,34 @@ private extension SettingsViewController
     {
         UserDefaults.standard.isBackgroundRefreshEnabled = sender.isOn
     }
+
+    @objc func toggleUpdateNotifications(_ sender: UISwitch)
+    {
+        UserDefaults.standard.isUpdateNotificationsEnabled = sender.isOn
+    }
+
+    @objc func toggleCertRevocationAlert(_ sender: UISwitch)
+    {
+        UserDefaults.standard.isCertificateRevocationAlertEnabled = sender.isOn
+    }
+
+    private func makeNotificationToggleCell(identifier: String, title: String, subtitle: String, isOn: Bool, action: Selector) -> UITableViewCell
+    {
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: identifier)
+        cell.textLabel?.text = title
+        cell.detailTextLabel?.text = subtitle
+        cell.backgroundColor = .clear
+        cell.textLabel?.textColor = .label
+        cell.detailTextLabel?.textColor = UIColor.fluxSecondaryText
+        cell.selectionStyle = .none
+
+        let toggle = UISwitch()
+        toggle.isOn = isOn
+        toggle.onTintColor = .altPrimary
+        toggle.addTarget(self, action: action, for: .valueChanged)
+        cell.accessoryView = toggle
+        return cell
+    }
     
     @IBAction func toggleEnableEMPforWireguard(_ sender: UISwitch)
     {
@@ -1113,6 +1146,28 @@ extension SettingsViewController
             return cell
         }
 
+        if section == .appRefresh {
+            let row = AppRefreshRow.allCases[indexPath.row]
+            if row == .updateNotifications {
+                return makeNotificationToggleCell(
+                    identifier: "NotifUpdateNotifications",
+                    title: NSLocalizedString("App Update Notifications", comment: ""),
+                    subtitle: NSLocalizedString("Get notified when app updates are available", comment: ""),
+                    isOn: UserDefaults.standard.isUpdateNotificationsEnabled,
+                    action: #selector(toggleUpdateNotifications(_:))
+                )
+            }
+            if row == .certRevocationAlert {
+                return makeNotificationToggleCell(
+                    identifier: "NotifCertRevocation",
+                    title: NSLocalizedString("Certificate Revocation Alerts", comment: ""),
+                    subtitle: NSLocalizedString("Get notified when your signing certificate is revoked", comment: ""),
+                    isOn: UserDefaults.standard.isCertificateRevocationAlertEnabled,
+                    action: #selector(toggleCertRevocationAlert(_:))
+                )
+            }
+        }
+
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
 
         // Enforce readable colors regardless of storyboard defaults.
@@ -1310,6 +1365,8 @@ extension SettingsViewController
             case .backgroundRefresh: break
             case .noIdleTimeout: break
             case .disableAppLimit: break
+            case .updateNotifications: break
+            case .certRevocationAlert: break
             case .addToSiri:
 //                guard #available(iOS 14, *) else { return }   // our min deployment is iOS 15 now :) so commented out
                 self.addRefreshAppsShortcut()
