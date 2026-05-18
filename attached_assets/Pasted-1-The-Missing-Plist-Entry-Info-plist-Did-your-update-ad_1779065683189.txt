@@ -1,0 +1,48 @@
+1. The Missing Plist Entry (Info.plist)
+Did your update add a new feature that requires a user permission? (e.g., trying to access the camera, location, photo library, or local network tracking).
+
+The Culprit: If your code initializes or requests an Apple privacy SDK but you forgot to add the corresponding usage description key (like NSCameraUsageDescription) to your Info.plist, the iOS kernel will instantly kill the app with a fatal exception the split second it tries to load.
+
+The Fix: Double-check your Info.plist and make sure every privacy-related API you are using has its matching string description.
+
+2. Broken Dependency / Linker Error (Missing .dylib or Framework)
+Did you install a new npm package, CocoaPod, or Swift Package Manager dependency in this update?
+
+The Culprit: If a newly added third-party framework isn't properly embedded in the final bundle, the app will compile fine. But when iOS tries to launch it on a real device, the dynamic linker (dyld) will look for the library, fail to find it, and immediately abort.
+
+The Fix: In Xcode, go to your Target's settings under General. Scroll down to Frameworks, Libraries, and Embedded Content. Make sure any new libraries are set to "Embed & Sign" instead of "Do Not Embed".
+
+3. Crash in main.js, index.js, or Root App Component
+If you are working with a cross-platform framework (like React Native), an unhandled syntax error, a null-pointer crash at the global scope, or a broken native module import will cause the JavaScript thread to panic immediately upon loading.
+
+The Culprit: Importing a module that doesn't exist or calling an undefined function right at the top of your root file will crash the app before the first screen can even render.
+
+4. Direct Crash in AppDelegate or SceneDelegate
+If you touched any native iOS code (Swift/Objective-C) in AppDelegate:
+
+The Culprit: A crash inside application(_:didFinishLaunchingWithOptions:) will kill the app instantly. For example, if you are initializing an analytics SDK or a database (like Firebase, Realm, etc.) but passed an invalid configuration file or a null initialization key, it will trigger an immediate Fatal error.
+
+1. A Malformed Info.plist (XML Syntax Error)
+If you manually edited your Info.plist or an automated build script injected something into it during your update, a single broken XML tag, unclosed key, or typo will cause iOS to treat the entire bundle as corrupted.
+
+Why it causes a silent death: iOS parses the Info.plist before loading the app execution binary. If the parser fails, iOS refuses to execute the binary entirely. Sauce Labs sees a timeout or instant closure, but zero application crash logs.
+
+The Fix: Open your Info.plist in a plain text editor (or use plutil -lint Info.plist in your terminal) to verify it’s completely valid XML.
+
+2. Duplicated or Mismatched Bundle Identifier
+Did you change the Bundle ID in your code, or did your update pull in a framework/plugin that hardcoded a conflicting CFBundleIdentifier?
+
+Why it causes a silent death: If Sauce Labs is expecting one Bundle ID to attach Appium/WebDriverAgent to, but your built binary is serving a different one (or a duplicate), the system attempts to launch a process that Appium cannot hook into. It silently dies or times out on the session initialization.
+
+3. Broken Embedded Framework Signing
+If your update added a dynamic native library (.dylib) or an embedded framework, and it wasn't signed correctly with the exact same identity as the main app executable, Apple's Mobile File Integrity (amfid) daemon blocks the app code from running.
+
+Why it causes a silent death: amfid kills the signature verification at the kernel layer before your app code can even fire its first instruction.
+
+The Fix: Go to Sauce Labs and look strictly at the Device Syslog / Live System Log (instead of the app logs or crash tab). If you see lines from amfid or kernel saying something like proc xxxx: signature invalid or code signing blocked, your dependency packaging is broken.
+
+4. Code Stripping or Wrong Deployment Target
+If your update bumped the minimum iOS deployment target to a version higher than the real device you are selecting on Sauce Labs (e.g., your app target got set to iOS 17.4 but the cloud device is running iOS 17.0), iOS will silently refuse to open it.
+
+The Fix: Check your build settings in Xcode under Minimum Deployments and make sure it matches or is lower than the Sauce Labs hardware you're requesting.
+
