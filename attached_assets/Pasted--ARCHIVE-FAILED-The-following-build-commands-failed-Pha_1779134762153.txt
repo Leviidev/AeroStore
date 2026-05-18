@@ -1,0 +1,18 @@
+** ARCHIVE FAILED **
+
+
+The following build commands failed:
+	PhaseScriptExecution Build\ AltBackup.ipa /Users/runner/work/FluxStore/FluxStore/build/ci-DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/SideStore/IntermediateBuildFilesPath/AltStore.build/Debug-iphoneos/SideStore.build/Script-A8E00D3F2D0C9C6D000DD2C7.sh (in target 'SideStore' from project 'AltStore')
+	Archiving project AltStore with scheme SideStore
+(2 failures)
+---- Errors / failures in log ----
+PhaseScriptExecution Fetch\ prebuilt\ binaries /Users/runner/work/FluxStore/FluxStore/build/ci-DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/SideStore/IntermediateBuildFilesPath/em_proxy.build/Debug-iphoneos/em_proxy-staticlib.build/Script-9987603529A4610700818586.sh (in target 'em_proxy-staticlib' from project 'em_proxy')
+PhaseScriptExecution Build\ Minimuxer\ Rust\ Bridge /Users/runner/work/FluxStore/FluxStore/build/ci-DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/SideStore/IntermediateBuildFilesPath/AltStore.build/Debug-iphoneos/SideStore.build/Script-A8D768282F52F0D4002356C4.sh (in target 'SideStore' from project 'AltStore')
+class IntentError: NSError, CustomLocalizedStringResourceConvertible
+class IntentError: NSError, CustomLocalizedStringResourceConvertible
+PhaseScriptExecution Build\ AltBackup.ipa /Users/runner/work/FluxStore/FluxStore/build/ci-DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/SideStore/IntermediateBuildFilesPath/AltStore.build/Debug-iphoneos/SideStore.build/Script-A8E00D3F2D0C9C6D000DD2C7.sh (in target 'SideStore' from project 'AltStore')
+Error: ipa-altbackup failed
+Command PhaseScriptExecution failed with a nonzero exit code
+The following build commands failed:
+	PhaseScriptExecution Build\ AltBackup.ipa /Users/runner/work/FluxStore/FluxStore/build/ci-DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/SideStore/IntermediateBuildFilesPath/AltStore.build/Debug-iphoneos/SideStore.build/Script-A8E00D3F2D0C9C6D000DD2C7.sh (in target 'SideStore' from project 'AltStore')
+Error: Process completed with exit code 65.

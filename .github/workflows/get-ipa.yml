@@ -25,6 +25,17 @@ jobs:
       - name: SwiftPM — GitHub token (fewer clone/rate-limit issues)
         run: git config --global url."https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
+      - name: Install build tools (ldid for AltBackup, wget for em_proxy)
+        run: brew install ldid wget
+
+      - name: Rust iOS target (for Minimuxer Rust Bridge)
+        run: |
+          if ! command -v rustup >/dev/null 2>&1; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+            source "$HOME/.cargo/env"
+          fi
+          rustup target add aarch64-apple-ios
+
       - uses: maxim-lobanov/setup-xcode@v1.6.0
         with:
           xcode-version: "26.4"
