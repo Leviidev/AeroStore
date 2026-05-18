@@ -64,6 +64,9 @@ jobs:
       - name: Fetch em_proxy prebuilt binaries
         run: bash scripts/ci/fetch_em_proxy_prebuilt.sh
 
+      - name: Validate Pre-Build
+        run: python3 scripts/ci/workflow.py validate-pre-build
+
       - name: Archive (unsigned)
         run: |
           set -euo pipefail
