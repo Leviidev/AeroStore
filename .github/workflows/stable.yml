@@ -73,6 +73,9 @@ jobs:
             ~/Library/Caches/org.swift.swiftpm
           key: xcode-build-cache-stable-
 
+      - name: Validate Signing Config
+        run: python3 scripts/ci/validate_signing_config.py
+
       - name: Build
         id: build
         env:
