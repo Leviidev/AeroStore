@@ -232,7 +232,7 @@ class FluxNotificationManager: NSObject {
             ),
             teamName
         )
-        content.sound = .defaultCritical
+        content.sound = .default
         content.badge = 1
         content.userInfo = [
             "type": "certificate_revoked",

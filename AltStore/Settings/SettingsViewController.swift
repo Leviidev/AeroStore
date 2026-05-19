@@ -1195,9 +1195,10 @@ extension SettingsViewController
             }
         }
         
+        let lastStoryboardRow = (AppRefreshRow.allCases.firstIndex(of: .updateNotifications) ?? AppRefreshRow.allCases.count) - 1
         if let cell = cell as? InsetGroupTableViewCell,
                indexPath.section == Section.appRefresh.rawValue,
-               indexPath.row == AppRefreshRow.allCases.count-1      // last row
+               indexPath.row == lastStoryboardRow
         {
             cell.setValue(3, forKey: "style")
         }
