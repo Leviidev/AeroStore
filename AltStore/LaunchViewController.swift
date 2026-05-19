@@ -71,12 +71,26 @@ final class LaunchViewController: UIViewController {
             DatabaseManager.shared.start { error in
                 Task { @MainActor in
                     if let error {
-                        await self.finishLaunching()
-                        await self.handleLaunchError(error, retryCallback: self.runLaunchSequence)
+                        let nsError = error as NSError
+                        if nsError.code == 134020 {
+                            // CoreData model incompatibility — the on-device store was created
+                            // with an older schema. Silently wipe it and retry the launch
+                            // sequence. We must NOT call finishLaunching() here because
+                            // installMainInterface + runDeferredLaunchWork will immediately
+                            // query CoreData, which has no open store yet and will crash.
+                            print("⚠️ CoreData model incompatibility (134020) — recreating database and retrying launch.")
+                            DatabaseManager.recreateDatabase()
+                            continuation.resume()
+                            await self.runLaunchSequence()
+                        } else {
+                            await self.finishLaunching()
+                            await self.handleLaunchError(error, retryCallback: self.runLaunchSequence)
+                            continuation.resume()
+                        }
                     } else {
                         await self.finishLaunching()
+                        continuation.resume()
                     }
-                    continuation.resume()
                 }
             }
         }

@@ -99,21 +99,11 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
             print("⏳ Starting DatabaseManager (async)...")
             DatabaseManager.shared.start { error in
                 if let error {
-                    print("❌ Failed to start DatabaseManager. Error: \(error)")
-                    // Check if it's a model incompatibility error
-                    let nsError = error as NSError
-                    if nsError.code == 134020 { // NSPersistentStoreIncompatibleVersionError
-                        print("⚠️ Database model incompatibility detected, recreating database...")
-                        DatabaseManager.recreateDatabase()
-                        print("✅ Database recreated, retrying start...")
-                        DatabaseManager.shared.start { retryError in
-                            if let retryError {
-                                print("❌ Failed to start DatabaseManager after recreation. Error: \(retryError)")
-                            } else {
-                                print("✅ DatabaseManager started successfully after recreation")
-                            }
-                        }
-                    }
+                    // CoreData model incompatibility (134020) is handled silently by
+                    // LaunchViewController.runLaunchSequence, which recreates the database
+                    // and retries before installing the main UI. Any other start errors
+                    // are surfaced to the user via handleLaunchError there as well.
+                    print("❌ Failed to start DatabaseManager (AppDelegate observer). Error: \(error)")
                 } else {
                     print("✅ DatabaseManager started successfully")
                 }
