@@ -18,6 +18,9 @@ jobs:
           submodules: recursive
           # Shallow default clones can leave submodule checkouts empty; full history is safest for gitlinks.
           fetch-depth: 0
+          # libidevice_ffi.a is stored in Git LFS — without this flag the runner
+          # gets a tiny pointer file instead of the actual library, causing link failure.
+          lfs: true
 
       - name: Sync submodules and ensure native Dependencies checkouts
         run: bash scripts/ci/ensure_fluxstore_dependencies.sh
