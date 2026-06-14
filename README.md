@@ -5,6 +5,8 @@
 # AeroStore
 
 > AeroStore is a **fork of [SideStore](https://github.com/SideStore/SideStore)**—an *untethered, community-driven* alternative app store for non-jailbroken iOS devices—with refreshed branding and on-device JIT via StikJIT.
+>
+> Full release date: July 1st 2026
 
 **Repository:** [github.com/FluxStore-App/FluxStore](https://github.com/FluxStore-App/FluxStore) (GitHub org/repo name is unchanged; the installed app is **AeroStore**.)
 
