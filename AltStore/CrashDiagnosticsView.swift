@@ -70,7 +70,7 @@ no crash log appears in Xcode Organizer or the device console.
 
                     // Action buttons
                     VStack(spacing: 12) {
-                        Button {
+                        SwiftUI.Button {
                             UIPasteboard.general.string = CrashReportStore.debugText(for: report)
                             isCopied = true
                             DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
@@ -87,7 +87,7 @@ no crash log appears in Xcode Organizer or the device console.
                         .tint(isCopied ? .green : .accentColor)
                         .animation(.default, value: isCopied)
 
-                        Button {
+                        SwiftUI.Button {
                             onContinue()
                         } label: {
                             Text("Continue Anyway")
