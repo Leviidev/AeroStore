@@ -1971,6 +1971,8 @@
 			buildSettings = {
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_ENTITLEMENTS = AltBackup/AltBackup.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_DEBUG_DYLIB = NO;
 				INFOPLIST_FILE = AltBackup/Info.plist;
@@ -1996,6 +1998,8 @@
 			buildSettings = {
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CODE_SIGN_ENTITLEMENTS = AltBackup/AltBackup.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_DEBUG_DYLIB = NO;
 				INFOPLIST_FILE = AltBackup/Info.plist;

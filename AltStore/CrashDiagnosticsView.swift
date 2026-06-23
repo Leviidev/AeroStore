@@ -62,7 +62,7 @@ no crash log appears in Xcode Organizer or the device console.
                     // What to try
                     CardSection(title: "Suggested steps", icon: "list.bullet.rectangle") {
                         VStack(alignment: .leading, spacing: 6) {
-                            StepRow(n: 1, text: "Tap "Continue Anyway" — the crash guard has been cleared and will not repeat until a new Rust call is attempted.")
+                            StepRow(n: 1, text: "Tap \"Continue Anyway\" — the crash guard has been cleared and will not repeat until a new Rust call is attempted.")
                             StepRow(n: 2, text: "If it crashes again, note which component appears next time (tunnel vs mount check vs launch setup).")
                             StepRow(n: 3, text: "Copy the debug info below and share it in the issue tracker.")
                         }
