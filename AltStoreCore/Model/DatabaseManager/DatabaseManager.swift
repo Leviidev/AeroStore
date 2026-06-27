@@ -54,6 +54,8 @@ public class DatabaseManager
     
     private var ignoreWillMigrateDatabaseNotification = false
 
+    private var _observer: UnsafeMutableRawPointer?
+
     private init()
     {
         self.persistentContainer = PersistentContainer(name: "AltStore", bundle: Bundle(for: DatabaseManager.self))
@@ -66,7 +68,16 @@ public class DatabaseManager
         self.persistentContainer.persistentStoreDescriptions = [storeDescription]
         
         let observer = Unmanaged.passUnretained(self).toOpaque()
+        self._observer = observer
         CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), observer, ReceivedWillMigrateDatabaseNotification, CFNotificationName.willMigrateDatabase.rawValue, nil, .deliverImmediately)
+    }
+
+    deinit
+    {
+        if let observer = self._observer
+        {
+            CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), observer, CFNotificationName.willMigrateDatabase, nil)
+        }
     }
 }
 
@@ -364,7 +375,14 @@ private extension DatabaseManager
         
         let context = self.persistentContainer.newBackgroundContext()
         context.performAndWait {
-            guard let localApp = ALTApplication(fileURL: Bundle.main.bundleURL) else { return }
+            guard let localApp = ALTApplication(fileURL: Bundle.main.bundleURL)
+            else {
+                struct PrepareError: LocalizedError {
+                    var errorDescription: String? { NSLocalizedString("Failed to initialize ALTApplication", comment: "") }
+                }
+                completionHandler(.failure(PrepareError()))
+                return
+            }
             
             let altStoreSource: Source
             
@@ -378,7 +396,12 @@ private extension DatabaseManager
             }
             
             // Make sure to always update source URL to be current.
-            try! altStoreSource.setSourceURL(Source.altStoreSourceURL)
+            do {
+                try altStoreSource.setSourceURL(Source.altStoreSourceURL)
+            } catch {
+                completionHandler(.failure(error))
+                return
+            }
             
             let storeApp: StoreApp
             
