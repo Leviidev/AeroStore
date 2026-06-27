@@ -59,11 +59,11 @@ public class DatabaseManager
         self.persistentContainer = PersistentContainer(name: "AltStore", bundle: Bundle(for: DatabaseManager.self))
         self.persistentContainer.preferredMergePolicy = MergePolicy()
 
-        if let storeDescription = self.persistentContainer.persistentStoreDescriptions.first
-        {
-            storeDescription.shouldMigrateStoreAutomatically = true
-            storeDescription.shouldInferMappingModelAutomatically = true
-        }
+        let storeURL = PersistentContainer.defaultDirectoryURL().appendingPathComponent("AltStore.sqlite")
+        let storeDescription = NSPersistentStoreDescription(url: storeURL)
+        storeDescription.shouldMigrateStoreAutomatically = true
+        storeDescription.shouldInferMappingModelAutomatically = true
+        self.persistentContainer.persistentStoreDescriptions = [storeDescription]
         
         let observer = Unmanaged.passUnretained(self).toOpaque()
         CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), observer, ReceivedWillMigrateDatabaseNotification, CFNotificationName.willMigrateDatabase.rawValue, nil, .deliverImmediately)
